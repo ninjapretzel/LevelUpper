@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using LevelUpper.Extensions;
 
 namespace LevelUpper.FX {
 	///<summary> Fancy version of Bar. Uses Unity's Legacy GUI</summary>
@@ -10,6 +11,8 @@ namespace LevelUpper.FX {
 		public static Texture2D _noise { get { return Resources.Load<Texture2D>("noise"); } }
 		///<summary> Default bar gradient texture </summary>
 		public static Texture2D _bar { get { return Resources.Load<Texture2D>("bar"); } }
+
+		public static Texture2D pixel { get { return Resources.Load<Texture2D>("pixel"); } }
 
 		///<summary> Primary noise pattern </summary>
 		public Texture2D noiseA;
@@ -110,14 +113,15 @@ namespace LevelUpper.FX {
 		///<summary> Draw this FancyBar in a given position on the screen, with a given fill.</summary>
 		public void Draw(Rect pos, float fill) {
 			float time = Time.time + timeOffset;
-			fill = fill.Clamp01();
+			fill = Mathf.Clamp01(fill);
 
 			Rect padded = pos.Pad(padding);
 			float ratio = pos.width / pos.height;
 
-			GUI.PushColor(Color.black);
-			GUI.DrawTexture(padded, GUI.pixel);
-			GUI.PopColor();
+			Color oldColor = GUI.color;
+			GUI.color = Color.black;
+			GUI.DrawTexture(padded, pixel);
+			
 			
 			Rect filled = leftToRight ? pos.Left(fill) : pos.Right(fill);
 			Rect empty = !leftToRight ? pos.Left(1-fill) : pos.Right(1-fill);
@@ -135,26 +139,23 @@ namespace LevelUpper.FX {
 			Rect coordsBempty = !leftToRight ? coordsB.Left(1 - fill) : coordsB.Right(1 - fill);
 
 
-			GUI.PushColor(baseColor.MultRGB(darkening.Clamp01()));
+			GUI.color = baseColor.MultRGB(darkening.Clamp01());
 			GUI.DrawTexture(empty, bar);
-			GUI.PopColor();
 			GUI.DrawTexture(filled, bar);
 
-			GUI.PushColor(colorA);
+			GUI.color = colorA;
 			GUI.DrawTextureWithTexCoords(filled, noiseA, coordsAfill);
-			GUI.PopColor();
 
-			GUI.PushColor(colorA.MultRGB(darkening));
+			GUI.color = colorA.MultRGB(darkening);
 			GUI.DrawTextureWithTexCoords(empty, noiseA, coordsAempty);
-			GUI.PopColor();
-			
-			GUI.PushColor(colorB);
-			GUI.DrawTextureWithTexCoords(filled, noiseB, coordsBfill);
-			GUI.PopColor();
 
-			GUI.PushColor(colorB.MultRGB(darkening));
+			GUI.color = colorB;
+			GUI.DrawTextureWithTexCoords(filled, noiseB, coordsBfill);
+
+			GUI.color = colorB.MultRGB(darkening);
 			GUI.DrawTextureWithTexCoords(empty, noiseB, coordsBempty);
-			GUI.PopColor();
+
+			GUI.color = oldColor;
 
 		}
 
@@ -170,9 +171,10 @@ namespace LevelUpper.FX {
 			Rect padded = pos.Pad(padding);
 			float ratio = pos.width / pos.height;
 
-			GUI.PushColor(Color.black);
-			GUI.DrawTexture(padded, GUI.pixel);
-			GUI.PopColor();
+			Color oldColor = GUI.color;
+
+			GUI.color = Color.black;
+			GUI.DrawTexture(padded, pixel);
 
 			
 			float fillTarget = (fill - delta).Clamp01();
@@ -208,35 +210,35 @@ namespace LevelUpper.FX {
 			coordsBempty = !leftToRight ? coordsBempty.Left(1.0f - fillHi) : coordsBempty.Right(1.0f - fillHi);
 
 
-			GUI.PushColor(baseColor.MultRGB(darkening.Clamp01()));
+			GUI.color = baseColor.MultRGB(darkening.Clamp01());
 			GUI.DrawTexture(empty, bar);
-			GUI.PopColor();
-			GUI.PushColor(midColor);
+
+			GUI.color = midColor;
 			GUI.DrawTexture(middle, bar);
-			GUI.PopColor();
+			
 			GUI.DrawTexture(filled, bar);
 
-			GUI.PushColor(midColorA);
+			GUI.color = midColorA;
 			GUI.DrawTextureWithTexCoords(middle, noiseA, coordsAmid);
-			GUI.PopColor();
-			GUI.PushColor(colorA);
+
+			GUI.color = colorA;
 			GUI.DrawTextureWithTexCoords(filled, noiseA, coordsAfill);
-			GUI.PopColor();
 
-			GUI.PushColor(colorA.MultRGB(darkening));
+
+			GUI.color = colorA.MultRGB(darkening);
 			GUI.DrawTextureWithTexCoords(empty, noiseA, coordsAempty);
-			GUI.PopColor();
 
-			GUI.PushColor(midColorB);
+
+			GUI.color = midColorB;
 			GUI.DrawTextureWithTexCoords(middle, noiseB, coordsBmid);
-			GUI.PopColor();
-			GUI.PushColor(colorB);
-			GUI.DrawTextureWithTexCoords(filled, noiseB, coordsBfill);
-			GUI.PopColor();
 
-			GUI.PushColor(colorB.MultRGB(darkening));
+			GUI.color = colorB;
+			GUI.DrawTextureWithTexCoords(filled, noiseB, coordsBfill);
+
+
+			GUI.color = colorB.MultRGB(darkening);
 			GUI.DrawTextureWithTexCoords(empty, noiseB, coordsBempty);
-			GUI.PopColor();
+			
 
 		}
 

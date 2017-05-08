@@ -236,7 +236,7 @@ namespace LevelUpper {
 					}
 				}
 			} else {
-				Screen.lockCursor = false;
+				Cursor.lockState = CursorLockMode.None;
 				Cursor.visible = true;
 			}
 

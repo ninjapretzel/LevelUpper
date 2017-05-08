@@ -348,7 +348,7 @@ namespace LevelUpper.Extensions.Reflection {
 			if (targetTypeName == null) {
 				throw new ArgumentNullException();
 			}
-			foreach (string assembly in ReflectionUtils.assemblies) {
+			foreach (string assembly in ReflectionExtensions.assemblies) {
 				Type targetClass = assembly.Length > 0 ? GetType(targetTypeName + assembly) : GetType(targetTypeName);
 				if (targetClass != null) {
 					return targetClass;

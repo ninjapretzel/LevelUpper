@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using System.Collections.Generic;
 using UnityEngine;
+using LevelUpper.Extensions;
 
 #if LG_STEAM
 using Steamworks;
@@ -21,7 +22,9 @@ namespace LevelUpper {
 	public static class Localization {
 
 #if XtoJSON
-	private static JsonObject _strs;
+		private static JsonObject _strs;
+#else 
+		private static Dictionary<string, string> _strs;
 #endif
 
 		public static Language language = Language.english;
@@ -30,25 +33,28 @@ namespace LevelUpper {
 		public static void Init() {
 			string text = Resources.Load<TextAsset>("strings").text.ConvertNewlines();
 #if XtoJSON
-		//JsonArray levelsArray = JsonArray.ParseCSV(text, '|');
-		_strs = JsonObject.ParseCSV(text, '|');
-#endif
+			//JsonArray levelsArray = JsonArray.ParseCSV(text, '|');
+			_strs = JsonObject.ParseCSV(text, '|');
 			//Debug.Log(_strs.PrettyPrint());
+#else 
+			_strs = new Dictionary<string, string>();
+			_strs.LoadCSV(text);
+#endif
 #if LG_STEAM
-		// Use a switch here instead of parsing the enum (we don't support all those langauges yet!)
-		if (SteamManager.Initialized) {
-			switch (SteamApps.GetCurrentGameLanguage()) {
-				case "spanish": {
-					language = Language.spanish;
-					break;
-				}
-				case "english":
-				default: {
-					language = Language.english;
-					break;
+			// Use a switch here instead of parsing the enum (we don't support all those langauges yet!)
+			if (SteamManager.Initialized) {
+				switch (SteamApps.GetCurrentGameLanguage()) {
+					case "spanish": {
+						language = Language.spanish;
+						break;
+					}
+					case "english":
+					default: {
+						language = Language.english;
+						break;
+					}
 				}
 			}
-		}
 #else
 			switch (Application.systemLanguage) {
 				case SystemLanguage.Spanish: {
@@ -69,23 +75,23 @@ namespace LevelUpper {
 			if (name.Length == 0) { return name; }
 			if (!initialized) { Init(); }
 #if XtoJSON
-		if (_strs.ContainsKey(name)) {
+			if (_strs.ContainsKey(name)) {
 
-			JsonObject localized = _strs.Get<JsonObject>(name);
-			string st = localized.Get<string>(language.ToString());
+				JsonObject localized = _strs.Get<JsonObject>(name);
+				string st = localized.Get<string>(language.ToString());
 
-			if (!string.IsNullOrEmpty(st)) {
-				return string.Format(st.Replace("\\n", "\n"), args);
+				if (!string.IsNullOrEmpty(st)) {
+					return string.Format(st.Replace("\\n", "\n"), args);
+				}
+
 			}
-
-		}
 #endif
 			return name;
 		}
 
 		public static bool CanLocalize(string name) {
 #if XtoJSON
-		return _strs != null && _strs.ContainsKey(name);
+			return _strs != null && _strs.ContainsKey(name);
 #else
 			return false;
 #endif
@@ -95,12 +101,12 @@ namespace LevelUpper {
 			if (name == null || name.Length == 0) { return ""; }
 			if (!initialized) { Init(); }
 #if XtoJSON
-		if (_strs.ContainsKey(name)) {
+			if (_strs.ContainsKey(name)) {
 
-			JsonObject localized = _strs.Get<JsonObject>(name);
-			string st = localized.Get<string>(language.ToString());
+				JsonObject localized = _strs.Get<JsonObject>(name);
+				string st = localized.Get<string>(language.ToString());
 
-			if (!string.IsNullOrEmpty(st)) {
+				if (!string.IsNullOrEmpty(st)) {
 #if UNITY_EDITOR
 				return "<color=#00ff00ff>" + string.Format(st.Replace("\\n", "\n"), args) + "</color>";
 #else

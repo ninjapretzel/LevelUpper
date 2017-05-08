@@ -7,6 +7,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Reflection;
+using LevelUpper.Extensions.Reflection;
+
+
+using LevelUpper.RNG;
+using Random = LevelUpper.RNG.Random;
 
 namespace LevelUpper.Extensions {
 	public static class DataExtensions {
@@ -835,7 +840,7 @@ namespace LevelUpper.Extensions {
 		/// <param name="typeName">The type of the requested object.</param>
 		/// <returns>The resulting object.</returns>
 		public static object ParseParameterListIntoType(this string[] parameters, string typeName) {
-			Type targetType = ReflectionUtils.GetTypeInUnityAssemblies(typeName);
+			Type targetType = ReflectionExtensions.GetTypeInUnityAssemblies(typeName);
 			if (targetType != null) {
 				return ParseParameterListIntoType(parameters, targetType);
 			} else {

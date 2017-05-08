@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections;
 using System.Collections.Generic;
+using LevelUpper.Extensions;
 
 namespace LevelUpper.Markdown {
 	public static class Replacements {

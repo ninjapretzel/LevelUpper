@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
+using LevelUpper.Extensions;
 #if UNITY_STANDALONE && LG_STEAM
 using Steamworks;
 #elif UNITY_XBOXONE
@@ -306,7 +307,7 @@ namespace LevelUpper.InputSystem {
 		/// <param name="control">The control to get the name for, must be of format "AxisX[+/-]" or "ButtonX".</param>
 		/// <returns><paramref name="control"/> corresponding to the primary controller number.</returns>
 		public static string GetControlName(string control) {
-			int primary = Input.primaryControllerIndex;
+			int primary = Controllers.primaryControllerIndex;
 			return GetControlName(primary, control);
 		}
 
@@ -327,7 +328,7 @@ namespace LevelUpper.InputSystem {
 		/// <param name="button">The button to get the name for. Must refer to a specific joystick <c>X</c>.</param>
 		/// <returns>The name of <paramref name="button"/> corresponding to the primary controller number <c>x</c></returns>
 		public static string GetButtonName(KeyCode button) {
-			int primary = Input.primaryControllerIndex;
+			int primary = Controllers.primaryControllerIndex;
 			return GetButtonName(primary, button);
 		}
 

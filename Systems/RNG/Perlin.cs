@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using LevelUpper.Extensions;
 
 namespace LevelUpper.RNG {
 
@@ -99,10 +100,10 @@ namespace LevelUpper.RNG {
 			float v3 = SmoothNoise(xi, yi + 1);
 			float v4 = SmoothNoise(xi + 1, yi + 1);
 			
-			float v5 = FloatUtils.CosInterp(v1, v2, xf);
-			float v6 = FloatUtils.CosInterp(v3, v4, xf);
+			float v5 = FloatExtensions.CosInterp(v1, v2, xf);
+			float v6 = FloatExtensions.CosInterp(v3, v4, xf);
 
-			return FloatUtils.CosInterp(v5, v6, yf);
+			return FloatExtensions.CosInterp(v5, v6, yf);
 		}
 		
 		public float PNoise(float x, float y) {

@@ -6,6 +6,9 @@ using System.Collections.Generic;
 /// <summary> Legacy-GUI dropdown list. </summary>
 public class DropdownList<T> : List<T> {
 
+	/// <summary> Blank GUISkin </summary>
+	public static GUISkin blankSkin { get { return Resources.Load<GUISkin>("blank"); } }
+
 	/// <summary> Currently open? </summary>
 	public bool open = false;
 	/// <summary> Current selection index. </summary>
@@ -128,9 +131,10 @@ public class DropdownList<T> : List<T> {
 		
 		if (totalHeight > maxPixelHeight) { GUI.EndScrollView(); }
 		
-		GUI.PushSkin(GUI.blankSkin);
-		if (GUI.Button(Screen.all, "")) { open = false; }
-		GUI.PopSkin();	
+		GUISkin oldSkin = GUI.skin;
+		GUI.skin = blankSkin;
+		if (GUI.Button(new Rect(0, 0, Screen.width, Screen.height), "")) { open = false; }
+		GUI.skin = oldSkin;
 		
 	}
 	

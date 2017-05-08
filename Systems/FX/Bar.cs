@@ -188,14 +188,14 @@ namespace LevelUpper.FX {
 			Rect emptyReps = repeat;
 			
 			if (area.width > area.height) {
-				filled = filled.UpperLeft(p, 1);
-				filledReps = filledReps.UpperLeft(p, 1);
-				empty = empty.UpperRight(1.0f-p, 1);
-				emptyReps = emptyReps.UpperRight(1.0f-p, 1);
+				filled = filled.TopLeft(p, 1);
+				filledReps = filledReps.TopLeft(p, 1);
+				empty = empty.TopRight(1.0f-p, 1);
+				emptyReps = emptyReps.TopRight(1.0f-p, 1);
 			} else {
 				filled = filled.BottomLeft(1, p);
-				filledReps = filledReps.UpperLeft(1, p);
-				empty = empty.UpperLeft(1, 1.0f-p);
+				filledReps = filledReps.TopLeft(1, p);
+				empty = empty.TopLeft(1, 1.0f-p);
 				emptyReps = emptyReps.BottomLeft(1, 1.0f-p);
 			}
 			

@@ -89,22 +89,25 @@ public class ScrollableList<T> : List<T> {
 		Rect viewRect = brush;
 		viewRect.height *= Count;
 		
-		GUI.PushColor(normalColor);
+		Color oldColor = GUI.color;
+		GUI.color = (normalColor);
 		scrollPos = GUI.BeginScrollView(area, scrollPos, viewRect); {
 			for (int i = 0; i < Count; i++) {
-				if (selectedIndex == i) { GUI.PushColor(highlightColor); }
+				if (selectedIndex == i) {
+					GUI.color = highlightColor; 
+				}
 				if (GUI.Button(brush, LabelOfElementAt(i), style)) {
 					selectedIndex = i;
 					if (onSelected != null) {
 						onSelected(this);
 					}
 				}
-				if (selectedIndex == i) { GUI.PopColor(); }
+				GUI.color = normalColor; 
 				brush = brush.MoveDown();
 				
 			}
 		} GUI.EndScrollView();
-		GUI.PopColor();
+		GUI.color = oldColor;
 	}
 	
 }
