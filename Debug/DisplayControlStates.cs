@@ -1,6 +1,8 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using LevelUpper.Extensions;
+using LevelUpper.InputSystem;
 
 public class DisplayControlStates : MonoBehaviour {
 
@@ -9,7 +11,8 @@ public class DisplayControlStates : MonoBehaviour {
 		GUI.skin = Resources.Load<GUISkin>("standard");
 		GUI.color = Color.white.Alpha(.5f);
 
-		GUI.Box(Screen.Left(.5f), "");
+		Rect area = new Rect(0, 0, Screen.width * .5f, Screen.height);
+		GUI.Box(area, "");
 		GUILayout.BeginVertical("box", GUILayout.Width(Screen.width / 2f), GUILayout.Height(Screen.height)); {
 			int i = 0;
 			foreach (var pair in ControlStates.GetAll()) {

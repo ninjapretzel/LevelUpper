@@ -5,6 +5,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using LevelUpper.Extensions;
+using LevelUpper.InputSystem;
+using LevelUpper.Extensions.Reflection;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -318,7 +321,7 @@ namespace LevelUpper {
 				if (indexOfDot > 0) {
 					targetClassName = command.Substring(0, indexOfDot);
 					targetMemberName = command.Substring(indexOfDot + 1);
-					targetClass = ReflectionUtils.GetTypeInUnityAssemblies(targetClassName);
+					targetClass = ReflectionExtensions.GetTypeInUnityAssemblies(targetClassName);
 				} else {
 					targetClass = typeof(DevConsole);
 					targetMemberName = command;
@@ -610,7 +613,7 @@ namespace LevelUpper {
 					bool failed = false;
 					Type[] parsedGenericParameters = new Type[genericParameters.Length];
 					for (int i = 0; i < parsedGenericParameters.Length; ++i) {
-						parsedGenericParameters[i] = ReflectionUtils.GetTypeInUnityAssemblies(parameterList[i]);
+						parsedGenericParameters[i] = ReflectionExtensions.GetTypeInUnityAssemblies(parameterList[i]);
 						if (parsedGenericParameters[i] == null) { failed = true; break; }
 					}
 					if (failed) { continue; }
@@ -1018,7 +1021,7 @@ namespace LevelUpper {
 		/// <param name="cmds">Commands to run when key <paramref name="name"/> is pressed.</param>
 		public static void Bind(string name, string cmds) {
 			KeyCode targetKeyCode;
-			if (EnumUtils.TryParse<KeyCode>(name, true, out targetKeyCode)) {
+			if (EnumExtensions.TryParse(name, true, out targetKeyCode)) {
 				Bind(targetKeyCode, cmds);
 			} else {
 				try {
@@ -1364,13 +1367,14 @@ namespace LevelUpper {
 		/// Creates a new Window to use as the interface for the console.
 		/// </summary>
 		private void InstantiateWindowObject() {
-			window = (ConsoleWindow)new ConsoleWindow()
+			window = new ConsoleWindow();
+				/*
 				.Named("Developer Console")
 				.Resizable()
 				.Closed()
-				.Area(Screen.all.MiddleCenter(0.7f, 0.8f).Move(0.1f, 0.0f));
-			window.textWindow = initialText.ParseNewlines();
-			window.depth = -2000000000;
+				.Area(Screen.all.MiddleCenter(0.7f, 0.8f).Move(0.1f, 0.0f));//*/
+			//window.textWindow = initialText.ParseNewlines();
+			//window.depth = -2000000000;
 		}
 
 		/// <summary>
@@ -1537,10 +1541,9 @@ namespace LevelUpper {
 		}
 	}
 
-	/// <summary>
-	/// Class providing the GUI for the <see cref="DevConsole"/> class.
-	/// </summary>
-	public class ConsoleWindow : ZWindow {
+	//*
+	/// <summary> Class providing the GUI for the <see cref="DevConsole"/> class. </summary>
+	public class ConsoleWindow {
 
 		[DevConsole.Inaccessible] public Vector2 scrollPos = Vector2.zero;
 		[DevConsole.Inaccessible] public string textWindow = "";
@@ -1550,7 +1553,11 @@ namespace LevelUpper {
 		[DevConsole.Inaccessible] public int cmdIndex = 0;
 		[DevConsole.Inaccessible] public bool focusTheTextField = false;
 
-		public override void Window() {
+		public bool open = false;
+
+		public void Draw() { }
+		public void Window() {
+			/*
 			GUILayout.BeginVertical(); {
 				scrollPos = GUILayout.BeginScrollView(scrollPos, GUIStyle.none, GUI.skin.verticalScrollbar); {
 					if (textWindow.Length > 16382) {
@@ -1590,6 +1597,7 @@ namespace LevelUpper {
 			if (focusTheTextField && Event.current.type == EventType.Repaint) {
 				GUI.FocusControl("ConsoleInput");
 			}
+			//*/
 		}
 
 		public void TryExecute(string cmd) {
@@ -1607,4 +1615,6 @@ namespace LevelUpper {
 		}
 
 	}
+
+	//*/
 }

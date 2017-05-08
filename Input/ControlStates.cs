@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace LevelUpper.Input {
+namespace LevelUpper.InputSystem {
 
 
 	/// <summary> Class for holding the current and previous states of controls. </summary>

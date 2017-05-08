@@ -47,7 +47,10 @@ namespace LevelUpper.Extensions {
 		/// <param name="h"> Side length for one side. </param>
 		/// <returns> Square pixel rect around the center of <paramref name="c"/>, with side length based on the lowest value of <paramref name="h"/> * screen width/height </returns>
 		public static Rect GetScreenSquare(this Component c, float h) { 
-			return c.GetScreenRect(h, h).MiddleCenterSquare(1);
+			Rect sq = c.GetScreenRect(h, h);
+			float max = Mathf.Max(sq.height, sq.width);
+			Vector2 ct = new Vector2(sq.x + sq.width * .5f, sq.y + sq.height * .5f);
+			return new Rect(ct.x - max * .5f, ct.y - max * .5f, max, max);
 		}
 		
 		/// <summary> Gets the pixel rect around the transform.position of <paramref name="c"/>, based on <paramref name="s"/> times the screen width/height </summary>

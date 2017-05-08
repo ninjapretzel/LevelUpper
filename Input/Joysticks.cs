@@ -7,7 +7,7 @@ using Steamworks;
 using Gamepad;
 #endif
 
-namespace LevelUpper.Input {
+namespace LevelUpper.InputSystem {
 	/// <summary>
 	/// Delegate type for functions handling joystick events.
 	/// </summary>

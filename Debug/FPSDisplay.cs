@@ -53,7 +53,8 @@ public class FPSDisplay : MonoBehaviour {
 			} else {
 				GUI.color = Color.red;
 			}
-			GUI.Label(Screen.all, "FPS: " + (1f / last).ToString());
+			Rect screen = new Rect(0, 0, Screen.width, Screen.height);
+			GUI.Label(screen, "FPS: " + (1f / last).ToString());
 			float total = 0;
 			for (int i = 0; i < deltaTimes.Count; ++i) {
 				float current = deltaTimes[deltaTimes.Count - 1 - i];
