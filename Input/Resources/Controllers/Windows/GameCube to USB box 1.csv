@@ -1,0 +1,29 @@
+#unity identifier,control name
+Button0,A Button
+Button1,B Button
+Button2,X Button
+Button3,Y Button
+Button4,IGNORE
+Button5,IGNORE
+Button6,Z Button
+Button7,Start Button
+Button8,DPad Left
+Button9,DPad Right
+Button10,DPad Down
+Button11,DPad Up
+Axis0-,Control Stick Left
+Axis0+,Control Stick Right
+Axis1-,Control Stick Up
+Axis1+,Control Stick Down
+Axis2-,C Stick Left
+Axis2+,C Stick Right
+Axis3-,C Stick Down
+Axis3+,C Stick Up
+Axis4-,IGNORE
+Axis4+,Right Trigger
+Axis5-,IGNORE
+Axis5+,Left Trigger
+Axis6-,DPad Left
+Axis6+,DPad Right
+Axis7-,DPad Down
+Axis7+,DPad Up

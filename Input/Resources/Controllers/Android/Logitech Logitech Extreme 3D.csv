@@ -1,0 +1,17 @@
+#unity identifier,control name
+Button15,Trigger
+Button16,Button 2
+Button17,Button 3
+Button18,Button 4
+Button19,Button 5
+Axis0-,Joystick Left
+Axis0+,Joystick Right
+Axis1-,Joystick Up
+Axis1+,Joystick Down
+Axis3-,Joystick Twist Left
+Axis3+,Joystick Twist Right
+Axis8+,Throttle Down
+Axis4-,POV Hat Left
+Axis4+,POV Hat Right
+Axis5-,POV Hat Up
+Axis5+,POV Hat Down

@@ -1,0 +1,29 @@
+#unity identifier,control name
+Sheet,ouya
+Button0,O Button
+Button1,U Button
+Button2,Y Button
+Button3,A Button
+Button4,Left Bumper
+Button5,Right Bumper
+Button6,Left Stick Button
+Button7,Right Stick Button
+Button8,DPad Up
+Button9,DPad Down
+Button10,DPad Left
+Button11,DPad Right
+Button12,IGNORE
+Button13,IGNORE
+Button14,Menu Button
+Axis0-,Left Stick Left
+Axis0+,Left Stick Right
+Axis1-,Left Stick Up
+Axis1+,Left Stick Down
+Axis2-,IGNORE
+Axis2+,Left Trigger
+Axis3-,Right Stick Left
+Axis3+,Right Stick Right
+Axis4-,Right Stick Up
+Axis4+,Right Stick Down
+Axis5-,IGNORE
+Axis5+,Right Trigger

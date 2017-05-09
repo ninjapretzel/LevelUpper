@@ -1,0 +1,34 @@
+#unity identifier,control name
+Sheet,ps4
+Button0,Square
+Button1,Cross
+Button2,Circle
+Button3,Triangle
+Button4,L1
+Button5,R1
+Button6,IGNORE
+Button7,IGNORE
+Button8,Share Button
+Button9,Options Button
+Button10,Left Stick Button
+Button11,Right Stick Button
+Button12,PlayStation Button
+Button13,Touchpad Button
+Axis0-,Left Stick Left
+Axis0+,Left Stick Right
+Axis1-,Left Stick Up
+Axis1+,Left Stick Down
+Axis2-,Right Stick Left
+Axis2+,Right Stick Right
+Axis3-,IGNORE
+Axis3+,L2
+Axus4-,IGNORE
+Axis4+,R2
+Axis5-,Right Stick Up
+Axis5+,Right Stick Down
+Axis6-,DPad Left
+Axis6+,DPad Right
+Axis7-,DPad Up
+Axis7+,DPad Down
+Axis9+,Touchpad X
+Axis10+,Touchpad Y
