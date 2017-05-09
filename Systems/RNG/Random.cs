@@ -97,6 +97,9 @@ namespace LevelUpper.RNG {
 		#endregion
 
 		#region Choosing
+		/// <summary> Chooses an index from a list of weights </summary>
+		/// <param name="weights"> Weights to the given choice </param>
+		/// <returns> Random index from range [0, <paramref name="weights"/>.Count) </returns>
 		public static int WeightedChoose(IList<float> weights) {
 			float total = 0;
 			int i;
