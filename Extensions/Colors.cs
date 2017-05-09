@@ -131,9 +131,7 @@ namespace LevelUpper.Extensions {
 			hsv.g = Mathf.Clamp01(hsv.g + saturation);
 			return hsv.HSVtoRGB();
 		}
-		///<summary>Adds Saturation to an RGB color.
-		///Lets saturation escape [0, 1]
-		///Returns an RGB color.</summary>
+		///<summary>Adds Saturation to an RGB color. Lets saturation escape [0, 1]. Returns an RGB color.</summary>
 		///<param name="c">Color to modify</param>
 		///<param name="saturation">Saturation to add. Range [-1, 1]</param>
 		///<returns>Input color with saturation modified</returns>
@@ -143,9 +141,7 @@ namespace LevelUpper.Extensions {
 			return hsv.HSVtoRGB();
 		}
 
-		/// <summary>
-		/// Returns HSV color matching input RGB color
-		/// </summary>
+		/// <summary> Returns HSV color matching input RGB color </summary>
 		/// <param name="c">RGB color to convert</param>
 		/// <returns>HSV version of input</returns>
 		public static Color RGBtoHSV(this Color c) {
@@ -185,9 +181,7 @@ namespace LevelUpper.Extensions {
 			return hsv;
 		}
 		
-		/// <summary>
-		/// Returns RGB color matching input HSV color
-		/// </summary>
+		/// <summary> Returns RGB color matching input HSV color </summary>
 		/// <param name="c">HSV color to convert</param>
 		/// <returns>RGB version of input</returns>
 		public static Color HSVtoRGB(this Color c) {
@@ -259,7 +253,7 @@ namespace LevelUpper.Extensions {
 			return "" + c.r + delim + c.g + delim + c.b + delim + c.a;
 		}
 
-		///<summary>Parse a string into a color</summary>
+		///<summary>Parse a string into a color. Formatted as "R,G,B,A" with floats. </summary>
 		public static Color FromString(string s, char delim = ',') {
 			string[] strs = s.Split(delim);
 			Color c = Color.white;
@@ -274,7 +268,7 @@ namespace LevelUpper.Extensions {
 			return c;
 		}
 
-		///<summary>Get a color at some position across an array of colors.</summary>
+		///<summary>Get a color at some position across an array of colors as a gradient.</summary>
 		public static Color Lerp(this Color[] colors, float position) {
 			if (colors.Length == 0) { return Color.white; }
 			else if (colors.Length == 1) { return colors[0]; }
