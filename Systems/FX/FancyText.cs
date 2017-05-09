@@ -1,6 +1,9 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using LevelUpper.RNG;
+using Random = LevelUpper.RNG.Random;
+using LevelUpper.Extensions;
 
 namespace LevelUpper.FX {
 
@@ -156,7 +159,7 @@ namespace LevelUpper.FX {
 
 			///<summary> Draw this display on the screen. </summary>
 			public void Draw() {
-				Rect brush = RectUtils.Centered(position, Vector2.one * 200 * scale);
+				Rect brush = RectExtensions.Centered(position, Vector2.one * 200 * scale);
 				for (int i = 0; i < text.Length; i++) {
 					float fadePosition = (timeout - (i * delay)) / fadeTime;
 					if (fadePosition <= 0) { return; }
@@ -171,8 +174,8 @@ namespace LevelUpper.FX {
 					
 					GUI.color = color.Alpha(alpha);
 					
-					if (outlined) { GUI.QOutlinedLabel(brush, ""+text[i]); }
-					else { GUI.Label(brush, ""+text[i]); }
+					//if (outlined) { GUI.L(brush, ""+text[i]); }
+					GUI.Label(brush, ""+text[i]); 
 
 					brush.x += spacing;
 
@@ -200,7 +203,7 @@ namespace LevelUpper.FX {
 		}
 
 		///<summary> Make a new text with a value. Defaults to center of screen. </summary>
-		public void Add(float val, float timeOffset = 0f) { Add(val, Screen.MiddleCenter(), settings, Color.white, timeOffset); }
+		public void Add(float val, float timeOffset = 0f) { Add(val, new Vector2(Screen.width/2f, Screen.height/2f), settings, Color.white, timeOffset); }
 		///<summary> Make a new text with a value at a position. </summary>
 		public void Add(float val, Vector2 position, float timeOffset = 0f) { Add(val, position, settings, Color.white, timeOffset); }
 		///<summary> Make a new text with a value at a position, with a given color </summary>
@@ -215,7 +218,7 @@ namespace LevelUpper.FX {
 
 		
 		///<summary> Add a text with a given string to the center of the screen. </summary>
-		public void Add(string str, float timeOffset = 0f) { Add(str, Screen.MiddleCenter(), settings, Color.white, timeOffset); }
+		public void Add(string str, float timeOffset = 0f) { Add(str, new Vector2(Screen.width / 2f, Screen.height / 2f), settings, Color.white, timeOffset); }
 		///<summary> Add a text with a given string at a position </summary>
 		public void Add(string str, Vector2 position, float timeOffset = 0f) { Add(str, position, settings, Color.white, timeOffset); }
 		///<summary> Add a text with a given string at a position, with a given color. </summary>

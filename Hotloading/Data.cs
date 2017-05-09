@@ -215,7 +215,7 @@ namespace LevelUpper.Hotload {
 		}
 
 
-#if X_TO_JSON
+#if XtoJSON
 		/// <summary> Load a JsonObject from a given file. </summary>
 		/// <param name="filename"> Filename, excluding the '.' </param>
 		/// <param name="ext"> File extension, including the '.' - Default is ".json" </param>
