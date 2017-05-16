@@ -78,8 +78,7 @@ namespace LevelUpper.Extensions.IMGUI {
 		public bool isPlaying { get { return Application.isPlaying; } }
 
 		#endregion
-
-		//////
+		
 		//////////////////////////////////////////////////////////////////////////////////////////////////////
 		/////////////////////////////////////////////////////////////////////////////////////////////////////
 		////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -110,7 +109,72 @@ namespace LevelUpper.Extensions.IMGUI {
 
 		#endregion
 
-		////////////////////////////////////////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////////////////////////////
+		/////////////////////////////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////////////////////////////////////////////////////////////
+		// GUI Wrapper
+
+		#region GUI wrappers
+		
+		//////////////////////////////////
+		/////////////////////////////////
+		////////////////////////////////
+		// Labels
+
+		/// <summary> Draw a label over a given <paramref name="area"/> with a given <paramref name="content"/></summary>
+		/// <param name="area"> Area to draw the display </param>
+		/// <param name="content"> Content to draw </param>
+		public static void Label(Rect area, string content) { GUI.Label(area, content); }
+		/// <summary> Draw a label over a given <paramref name="area"/> with a given <paramref name="content"/></summary>
+		/// <param name="area"> Area to draw the display </param>
+		/// <param name="content"> Content to draw </param>
+		public static void Label(Rect area, Texture content) { GUI.Label(area, content); }
+		/// <summary> Draw a label over a given <paramref name="area"/> with a given <paramref name="content"/></summary>
+		/// <param name="area"> Area to draw the display </param>
+		/// <param name="content"> Content to draw </param>
+		public static void Label(Rect area, GUIContent content) { GUI.Label(area, content); }
+
+		//////////////////////////////////
+		/////////////////////////////////
+		////////////////////////////////
+		// Boxes
+
+		/// <summary> Draw a box over a given <paramref name="area"/> with a given <paramref name="content"/></summary>
+		/// <param name="area"> Area to draw the display </param>
+		/// <param name="content"> Content to draw </param>
+		public static void Box(Rect area, string content) { GUI.Box(area, content); }
+		/// <summary> Draw a box over a given <paramref name="area"/> with a given <paramref name="content"/></summary>
+		/// <param name="area"> Area to draw the display </param>
+		/// <param name="content"> Content to draw </param>
+		public static void Box(Rect area, Texture content) { GUI.Box(area, content); }
+		/// <summary> Draw a box over a given <paramref name="area"/> with a given <paramref name="content"/></summary>
+		/// <param name="area"> Area to draw the display </param>
+		/// <param name="content"> Content to draw </param>
+		public static void Box(Rect area, GUIContent content) { GUI.Box(area, content); }
+
+		//////////////////////////////////
+		/////////////////////////////////
+		////////////////////////////////
+		// Buttons
+
+		/// <summary> Draw a button and check for a click over a given <paramref name="area"/> with a given <paramref name="content"/></summary>
+		/// <param name="area"> Area to draw the display </param>
+		/// <param name="content"> Content to draw </param>
+		/// <returns> If the button was clicked or not </returns>
+		public static bool Button(Rect area, string content) { return GUI.Button(area, content); }
+		/// <summary> Draw a button and check for a click over a given <paramref name="area"/> with a given <paramref name="content"/></summary>
+		/// <param name="area"> Area to draw the display </param>
+		/// <param name="content"> Content to draw </param>
+		/// <returns> If the button was clicked or not </returns>
+		public static bool Button(Rect area, Texture content) { return GUI.Button(area, content); }
+		/// <summary> Draw a button and check for a click over a given <paramref name="area"/> with a given <paramref name="content"/></summary>
+		/// <param name="area"> Area to draw the display </param>
+		/// <param name="content"> Content to draw </param>
+		/// <returns> If the button was clicked or not </returns>
+		public static bool Button(Rect area, GUIContent content) { return GUI.Button(area, content); }
+
+		#endregion
+		//////////////////////////////////////////////////////////////////////////////////////////////////////
 		/////////////////////////////////////////////////////////////////////////////////////////////////////
 		////////////////////////////////////////////////////////////////////////////////////////////////////
 		// GUILayout wrapper 
@@ -392,6 +456,46 @@ namespace LevelUpper.Extensions.IMGUI {
 		public static float VerticalSlider(float value, Action<float> callback, float bottom, float top, params GUILayoutOption[] options) {
 			float val = GUILayout.VerticalSlider(value, bottom, top, options);
 			if (val != value) { callback(val); }
+			return val;
+		}
+
+		//////////////////////////////////
+		/////////////////////////////////
+		////////////////////////////////
+		// Fields
+
+		/// <summary> Make an auto layout text field, displaying <paramref name="text"/> with given <paramref name="options"/>. </summary>
+		/// <param name="text"> Text to display. </param>
+		/// <param name="options"> Options to change the display </param>
+		/// <returns> Updated value of <paramref name="text"/>. </returns>
+		public static string TextField(string text, params GUILayoutOption[] options) { return GUILayout.TextField(text, options); }
+		/// <summary> Make an auto layout password-text field, displaying <paramref name="mask"/>ed <paramref name="text"/> with given <paramref name="options"/>. </summary>
+		/// <param name="text"> Text to display. </param>
+		/// <param name="mask"> Character to use to mask the content of the textbox </param>
+		/// <param name="options"> Options to change the display </param>
+		/// <returns> Updated value of <paramref name="text"/>. </returns>
+		public static string PasswordField(string s, char mask = '*', params GUILayoutOption[] options) { return GUILayout.PasswordField(s, mask, options); }
+		
+		/// <summary> Make an auto layout text field, displaying a float <paramref name="value"/>, with given <paramref name="options"/>. </summary>
+		/// <param name="value"> Value to display. </param>
+		/// <param name="options"> Options to change the display </param>
+		/// <returns> Updated <paramref name="value"/>, based on user input. </returns>
+		public static float FloatField(float value, params GUILayoutOption[] options) {
+			float val = value;
+			string str = TextField("" + val, options);
+			try { val = str.ParseFloat(); } 
+			catch { return value; }
+			return val;
+		}
+
+		/// <summary> Make an auto layout text field, displaying an integer <paramref name="value"/>, with given <paramref name="options"/>. </summary>
+		/// <param name="value"> Value to display. </param>
+		/// <param name="options"> Options to change the display </param>
+		/// <returns> Updated <paramref name="value"/>, based on user input. </returns>
+		public static int IntField(int value, params GUILayoutOption[] options) {
+			int val = value;
+			string str = TextField("" + val, options);
+			try { val = str.ParseInt(); } catch { return value; }
 			return val;
 		}
 

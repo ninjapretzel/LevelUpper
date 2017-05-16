@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System;
+using LevelUpper.Extensions;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -434,6 +435,45 @@ namespace LevelUpper.Editor {
 		public static float VerticalSlider(float value, Action<float> callback, float bottom, float top, params GUILayoutOption[] options) {
 			float val = GUILayout.VerticalSlider(value, bottom, top, options);
 			if (val != value) { callback(val); }
+			return val;
+		}
+
+		//////////////////////////////////
+		/////////////////////////////////
+		////////////////////////////////
+		// Fields
+
+		/// <summary> Make an auto layout text field, displaying <paramref name="text"/> with given <paramref name="options"/>. </summary>
+		/// <param name="text"> Text to display. </param>
+		/// <param name="options"> Options to change the display </param>
+		/// <returns> Updated value of <paramref name="text"/>. </returns>
+		public static string TextField(string text, params GUILayoutOption[] options) { return GUILayout.TextField(text, options); }
+		/// <summary> Make an auto layout password-text field, displaying <paramref name="mask"/>ed <paramref name="text"/> with given <paramref name="options"/>. </summary>
+		/// <param name="text"> Text to display. </param>
+		/// <param name="mask"> Character to use to mask the content of the textbox </param>
+		/// <param name="options"> Options to change the display </param>
+		/// <returns> Updated value of <paramref name="text"/>. </returns>
+		public static string PasswordField(string s, char mask = '*', params GUILayoutOption[] options) { return GUILayout.PasswordField(s, mask, options); }
+
+		/// <summary> Make an auto layout text field, displaying a float <paramref name="value"/>, with given <paramref name="options"/>. </summary>
+		/// <param name="value"> Value to display. </param>
+		/// <param name="options"> Options to change the display </param>
+		/// <returns> Updated <paramref name="value"/>, based on user input. </returns>
+		public static float FloatField(float value, params GUILayoutOption[] options) {
+			float val = value;
+			string str = TextField("" + val, options);
+			try { val = str.ParseFloat(); } catch { return value; }
+			return val;
+		}
+
+		/// <summary> Make an auto layout text field, displaying an integer <paramref name="value"/>, with given <paramref name="options"/>. </summary>
+		/// <param name="value"> Value to display. </param>
+		/// <param name="options"> Options to change the display </param>
+		/// <returns> Updated <paramref name="value"/>, based on user input. </returns>
+		public static int IntField(int value, params GUILayoutOption[] options) {
+			int val = value;
+			string str = TextField("" + val, options);
+			try { val = str.ParseInt(); } catch { return value; }
 			return val;
 		}
 
