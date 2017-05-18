@@ -1,0 +1,36 @@
+Alias "quit" "Quit"
+Alias "alias" "Alias"
+Alias "bind" "Bind"
+Alias "ehco" "Echo"
+Alias "unalias" "Unalias"
+Alias "unbind" "Unbind"
+Alias "poll" "Poll"
+
+Alias "AutoExec" "Exec autoexec.cfg"
+Alias "autoexec" "AutoExec"
+Alias "defaults" "Defaults"
+Bind BackQuote "ToggleConsole"
+
+BindButton W "forward"
+BindButton S "backward"
+BindButton A "left"
+BindButton D "right"
+BindButton E "up"
+BindButton Q "down"
+BindButton Space "jump"
+
+BindButton Z "zoomIn"
+BindButton X "zoomOut"
+
+BindButton UpArrow "camUp"
+BindButton DownArrow "camDown"
+BindButton LeftArrow "camLeft"
+BindButton RightArrow "camRight"
+
+Bind MouseAxisX+ "ControlStates.AddThisFrame yawAxis %value%"
+Bind MouseAxisX- "ControlStates.AddThisFrame yawAxis %nvalue%"
+Bind MouseAxisY+ "ControlStates.AddThisFrame pitchAxis %value%"
+Bind MouseAxisY- "ControlStates.AddThisFrame pitchAxis %nvalue%"
+Bind MouseWheel+ "ControlStates.AddThisFrame zoomInAxis %value%"
+Bind MouseWheel- "ControlStates.AddThisFrame zoomOutAxis %value%"
+
