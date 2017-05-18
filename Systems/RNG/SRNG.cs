@@ -130,7 +130,7 @@ namespace LevelUpper.RNG {
 		/// <returns> Value in range [0, <paramref name="max"/>) </returns>
 		public int NextInt(int max) { return Int32(max, nextHash()); }
 
-		/// <summary> Gets the next Float32 value from this RNG's sequence. </summary>
+		/// <summary> Gets the next Float32 value from this RNG's sequence. Value is from [0, 1) </summary>
 		/// <returns> Value in range [0, 1) </returns>
 		public float NextFloat() { return Float32(nextHash()); }
 		/// <summary> Gets the next Float32 value from this RNG's sequence in a given range. </summary>
