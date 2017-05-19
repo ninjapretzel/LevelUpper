@@ -2,6 +2,7 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using LevelUpper.Extensions;
 
 /// <summary> Legacy GUI scrollable selection list. </summary>
 public class ScrollableList<T> : List<T> {

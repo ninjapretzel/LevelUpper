@@ -2,6 +2,7 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using LevelUpper.Extensions;
 
 /// <summary> Legacy-GUI dropdown list. </summary>
 public class DropdownList<T> : List<T> {
