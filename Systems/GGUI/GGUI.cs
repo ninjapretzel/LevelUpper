@@ -242,7 +242,7 @@ public static class GGUI {
 		if (c.style.colors != null) { sel.colors = c.style.colors.Value; }
 	}
 
-	private static void AddButton(Control c, RectTransform obj) {
+	public static void AddButton(Control c, RectTransform obj) {
 		AttachText(c, obj);
 		AddImage(c, obj);
 
@@ -253,22 +253,30 @@ public static class GGUI {
 		button.onClick.AddListener(() => callback());
 	}
 
-	private static void AttachText(Control c, RectTransform obj) {
+	public static RectTransform AttachText(Control c, RectTransform obj, Rect? positionOverride = null) {
 		GameObject text = new GameObject("Text");
 		var rt = text.AddComponent<RectTransform>();
 		AddText(c, rt);
 		rt.SetParent(obj);
-		Reposition(rt, unitRect, zeroRect);
+		Reposition(rt, ((positionOverride != null) ? positionOverride.Value : unitRect), zeroRect);
+		return rt;
+	}
+
+	public static RectTransform AttachImage(Control c, RectTransform obj, Rect? positionOverride = null) {
+		GameObject img = new GameObject("Image");
+		var rt = img.AddComponent<RectTransform>();
+		AddImage(c, rt);
+		rt.SetParent(obj);
+		Reposition(rt, ((positionOverride != null) ? positionOverride.Value : unitRect), zeroRect);
+
+		return rt;
 	}
 
 	public static void AddToggle(Control c, RectTransform obj) {
-		GameObject text = new GameObject("Text");
-		var textRT = text.AddComponent<RectTransform>();
-		AddText(c, textRT);
-		textRT.SetParent(obj);
-		Reposition(textRT, new Rect(.1f, 0f, .9f, 1f), zeroRect);
+		AttachText(c, obj, new Rect(.1f, 0f, .9f, 1f));
 
 		GameObject bg = new GameObject("Background");
+
 
 
 	}
