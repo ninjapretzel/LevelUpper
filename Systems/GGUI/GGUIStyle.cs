@@ -24,6 +24,7 @@ public class GGUIStyle : ScriptableObject {
 	public VerticalWrapMode verWrapLegacy = VerticalWrapMode.Overflow;
 
 
+	public bool autoScale = true;
 	public bool autoSize = false;
 
 

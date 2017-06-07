@@ -3,7 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-public class GGUIRoot : MonoBehaviour {
+public class GGUIRoot : GGUIPage {
 
 	void Awake() {
 		var page = GGUI.Render(GGUI.TestFunc);

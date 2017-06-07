@@ -14,7 +14,12 @@ public class GGUIControl {
 	static readonly object[] empty = new object[0];
 
 	/// <summary> Empty Constructor. For this type, it's expected to use the initializer. </summary>
-	public GGUIControl() { }
+	/// <remarks> Does grab some information from GGUI, such as color/textColor/fontSize. </remarks>
+	public GGUIControl() { 
+		color = GGUI.color;
+		textColor = GGUI.textColor;
+		fontSize = GGUI.fontSize;
+	}
 
 	/// <summary> Optional position in space relative to parent </summary>
 	public Rect? position = null;
@@ -85,6 +90,7 @@ public static partial class GGUI {
 
 		GGUISkin sk = new GGUISkin();
 		var style = sk.defaultStyle;
+		style.fontSize = 36;
 		style.font = Resources.Load<TMP_FontAsset>("GGUI_Default");
 		style.fontLegacy = Resources.Load<Font>("GGUI_Default");
 		Debug.Log(style.font);
@@ -95,9 +101,9 @@ public static partial class GGUI {
 		colors.colorMultiplier = 1f;
 		colors.fadeDuration = .15f;
 		colors.normalColor = new Color(.7f, .7f, .7f);
-		colors.highlightedColor = Color.white;
-		colors.pressedColor = new Color(.4f, .6f, .8f);
-		colors.disabledColor = new Color(.3f, .3f, .3f);
+		colors.highlightedColor = new Color(.85f, .85f, .85f);
+		colors.pressedColor = new Color(1f, 1f, 1f);
+		colors.disabledColor = new Color(.53f, .53f, .53f);
 
 		style.colors = colors;
 
@@ -143,6 +149,7 @@ public static partial class GGUI {
 		inputField.colors = colors; // Note: Nullables don't get serialized :(
 		inputField.imageType = Image.Type.Sliced;
 		inputField.autoSize = true;
+		inputField.autoScale = false;
 		inputField.alignment = TextAlignmentOptions.Center; // Label gets centered
 		inputField.anchorLegacy = TextAnchor.MiddleLeft; // Input field is left aligned
 		inputField.horWrapLegacy = HorizontalWrapMode.Wrap;
@@ -177,6 +184,8 @@ public static partial class GGUI {
 	public static Color color = Color.white;
 	/// <summary> Color to render the text of the next control with </summary>
 	public static Color textColor = Color.white;
+	/// <summary> Fontsize to use for the next control, &lt=0 means use default size. </summary>
+	public static float fontSize = -1;
 
 	/// <summary> Cached sprites for fast access </summary>
 	static Dictionary<Texture2D, Sprite> spriteCache = new Dictionary<Texture2D, Sprite>();
@@ -219,6 +228,7 @@ public static partial class GGUI {
 		// TBD: More reset logic?
 		color = Color.white;
 		textColor = Color.white;
+		fontSize = -1;
 		skin = defaultSkin;
 
 		history.Clear();
@@ -347,6 +357,10 @@ public static partial class GGUI {
 		tmp.alignment = style.alignment;
 		tmp.overflowMode = style.overflow;
 		tmp.enableAutoSizing = style.autoSize;
+		if (style.autoScale) {
+			var scaler = tmp.AddComponent<GGUI_ScaleFontSize>();
+			scaler.fontSize = tmp.fontSize;
+		}
 	}
 
 	/// <summary> Adds a legacy Text component to the given control </summary>
@@ -373,6 +387,10 @@ public static partial class GGUI {
 		text.horizontalOverflow = style.horWrapLegacy;
 		text.verticalOverflow = style.verWrapLegacy;
 		text.resizeTextForBestFit = style.autoSize;
+		if (style.autoScale) {
+			var scaler = text.AddComponent<GGUI_ScaleFontSize>();
+			scaler.fontSize = text.fontSize;
+		}
 	}
 
 	/// <summary> Adds an Image component to the given control </summary>
@@ -578,6 +596,7 @@ public static partial class GGUI {
 		thumbImb.type = Image.Type.Simple;
 		thumbImb.preserveAspect = true;
 
+
 		var slider = obj.AddComponent<Slider>();
 		slider.fillRect = fill;
 		slider.handleRect = thumb;
@@ -588,7 +607,8 @@ public static partial class GGUI {
 
 		StyleInteractables(c, obj);
 
-		thumb.sizeDelta = new Vector2(100, 0);
+		
+		thumb.sizeDelta = new Vector2(50, 0);
 
 		if (c.onModifiedCallback != null) {
 			Action<float> callback = (Action<float>)c.onModifiedCallback;
@@ -633,6 +653,7 @@ public static partial class GGUI {
 		var handleImage = handle.GetComponent<Image>();
 		handle.gameObject.name = "Handle";
 		scrollbarComponent.handleRect = handle;
+		scrollbarComponent.targetGraphic = handleImage;
 		scrollbarComponent.direction = Scrollbar.Direction.BottomToTop;
 		StyleInteractables(c, scrollbarComponent);
 
@@ -828,14 +849,14 @@ public static partial class GGUI {
 	/// <param name="position"> Normalized Position Rect to create the panel at </param>
 	public static void Panel(Rect? position = null) {
 		Next();
-		lastControl = new GGUIControl() { position = position, kind = "Panel", style = skin["panel"], color = color, textColor = textColor };
+		lastControl = new GGUIControl() { position = position, kind = "Panel", style = skin["panel"] };
 	}
 	/// <summary> Creates a TextMeshPro with the current style/colors </summary>
 	/// <param name="position"> Normalized Position Rect to create the text at </param>
 	/// <param name="text"> Text to put into the control </param>
 	public static void Text(Rect? position, string text = "") {
 		Next();
-		lastControl = new GGUIControl() { position = position, kind = "Text", content = text, style = skin["text"], color = color, textColor = textColor };
+		lastControl = new GGUIControl() { position = position, kind = "Text", content = text, style = skin["text"] };
 	}
 
 	/// <summary> Creates a Box </summary>
@@ -843,7 +864,7 @@ public static partial class GGUI {
 	/// <param name="text"> Text to put into the control </param>
 	public static void Box(Rect? position, string text) {
 		Next();
-		lastControl = new GGUIControl() { position = position, kind = "Box", content = text, style = skin["box"], color = color, textColor = textColor };
+		lastControl = new GGUIControl() { position = position, kind = "Box", content = text, style = skin["box"] };
 	}
 
 	/// <summary> Creates a Button </summary>
@@ -852,7 +873,7 @@ public static partial class GGUI {
 	/// <param name="callback"> Function to call when the button is clicked. </param>
 	public static void Button(Rect? position, string text, Action callback = null) {
 		Next();
-		lastControl = new GGUIControl() { position = position, kind = "Button", content = text, style = skin["button"], onModifiedCallback = callback, color = color, textColor = textColor };
+		lastControl = new GGUIControl() { position = position, kind = "Button", content = text, style = skin["button"], onModifiedCallback = callback };
 	}
 
 	/// <summary> Creates a Toggle/Checkbox control </summary>
@@ -862,7 +883,7 @@ public static partial class GGUI {
 	/// <param name="callback"> Function to call when the control is changed. </param>
 	public static void Toggle(Rect? position, string text, bool value, Action<bool> callback = null) {
 		Next();
-		lastControl = new GGUIControl() { position = position, initialValue = value, kind = "Toggle", content = text, style = skin["toggle"], onModifiedCallback = callback, color = color, textColor = textColor };
+		lastControl = new GGUIControl() { position = position, initialValue = value, kind = "Toggle", content = text, style = skin["toggle"], onModifiedCallback = callback };
 	}
 
 	/// <summary> Creates a Slider control </summary>
@@ -874,7 +895,7 @@ public static partial class GGUI {
 	/// <param name="callback"> Function to call when the control is changed </param>
 	public static void Slider(Rect? position, string label, float value, float min, float max, Action<float> callback = null) {
 		Next();
-		lastControl = new GGUIControl() { position = position, initialValue = value, info = new object[] { min, max }, kind = "Slider", content = label, style = skin["slider"], onModifiedCallback = callback, color = color, textColor = textColor };
+		lastControl = new GGUIControl() { position = position, initialValue = value, info = new object[] { min, max }, kind = "Slider", content = label, style = skin["slider"], onModifiedCallback = callback };
 	}
 
 	/// <summary> Creates a TextField control </summary>
@@ -886,7 +907,7 @@ public static partial class GGUI {
 	/// <param name="onEndEdit"> Function to call when editing is finished </param>
 	public static void TextField(Rect? position, string text, string value, string placeholder, Action<string> onChanged = null, Action<string> onEndEdit = null) {
 		Next();
-		lastControl = new GGUIControl() { position = position, initialValue = value, info = new object[] { placeholder }, kind = "TextField", content = text, style = skin["inputField"], onModifiedCallback = onChanged, onEndEditCallback = onEndEdit, color = color, textColor = textColor, };
+		lastControl = new GGUIControl() { position = position, initialValue = value, info = new object[] { placeholder }, kind = "TextField", content = text, style = skin["inputField"], onModifiedCallback = onChanged, onEndEditCallback = onEndEdit, };
 	}
 
 	/// <summary> Creates a vertical scroll view </summary>
@@ -897,7 +918,7 @@ public static partial class GGUI {
 	/// <param name="elasticity"> Optional, Elasticity value </param>
 	public static void VertScrollView(Rect? position, int scrollbarWidth = 32, float sensitivity = 66, float inertia = .135f, float elasticity = .1f) {
 		Next();
-		lastControl = new GGUIControl() { position = position, info = new object[] { scrollbarWidth, sensitivity, inertia, elasticity }, kind = "VerticalScrollView", style = skin["vertScrollView"], color = color, textColor = textColor };
+		lastControl = new GGUIControl() { position = position, info = new object[] { scrollbarWidth, sensitivity, inertia, elasticity }, kind = "VerticalScrollView", style = skin["vertScrollView"] };
 	}
 
 
