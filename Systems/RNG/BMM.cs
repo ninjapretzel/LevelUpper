@@ -18,7 +18,9 @@ namespace LevelUpper.RNG {
 		}
 
 		///<summary> Randomize this field? </summary>
-		public bool randomize = false;
+		public bool randomize { get { return flag; } }
+		/// <summary> More generic name, since this class isn't just for randomization </summary>
+		public bool flag = false;
 		///<summary> Lowest possible value. </summary>
 		public float min = 0.9f;
 		///<summary> Largest possible value. </summary>
@@ -27,7 +29,7 @@ namespace LevelUpper.RNG {
 		///<summary> Get the (next) value, evenly distributed </summary>
 		public float value {
 			get {
-				if (!randomize) { return 1.0f; }
+				if (!flag) { return 1.0f; }
 				return Random.Range(min, max);
 			}
 		}
@@ -35,35 +37,35 @@ namespace LevelUpper.RNG {
 		///<summary> Get the (next) value, normally distributed </summary>
 		public float normal {
 			get {
-				if (!randomize) { return 1.0f; }
+				if (!flag) { return 1.0f; }
 				return Random.Normal(min, max);
 			}
 		}
 
 		///<summary> Get the (next) value, distributed with perlin noise </summary>
 		public float Perlin(float x, float y) {
-			if (!randomize) { return 1.0f; }
+			if (!flag) { return 1.0f; }
 			float f = noise.Get(x, y);
 			return min + (max-min) * f; 
 		}
 
 		///<summary> Default constructor </summary>
 		public BMM() {
-			randomize = false;
+			flag = false;
 			min = 0.9f;
 			max = 1.1f;
 		}
 
 		/// <summary> Two parameter constructor</summary>
 		public BMM(float mmin, float mmax) {
-			randomize = true;
+			flag = true;
 			min = mmin;
 			max = mmax;
 		}
 
 		///<summary> Three parametered constructor </summary>
 		public BMM(bool bb, float mmin, float mmax) {
-			randomize = bb;
+			flag = bb;
 			min = mmin;
 			max = mmax;
 		}

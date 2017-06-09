@@ -14,7 +14,7 @@ public class BMMDrawer : PropertyDrawer {
 		contentPosition.width *= 0.1f;
 		EditorGUI.indentLevel = 0;
 		EditorGUIUtility.labelWidth = 14f;
-		EditorGUI.PropertyField(contentPosition, property.FindPropertyRelative("randomize"), new GUIContent(""));
+		EditorGUI.PropertyField(contentPosition, property.FindPropertyRelative("flag"), new GUIContent(""));
 
 		contentPosition.x += contentPosition.width;
 		contentPosition.width *= 4.5f;
