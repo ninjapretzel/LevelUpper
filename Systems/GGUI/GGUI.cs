@@ -14,21 +14,34 @@ public class GGUIControl {
 	static readonly object[] empty = new object[0];
 
 	/// <summary> Empty Constructor. For this type, it's expected to use the initializer. </summary>
-	/// <remarks> Does grab some information from GGUI, such as color/textColor/fontSize. </remarks>
+	/// <remarks> Does grab some override information from GGUI, such as color/textColor/fontSize. </remarks>
 	public GGUIControl() { 
 		color = GGUI.color;
 		textColor = GGUI.textColor;
 		fontSize = GGUI.fontSize;
+		alignment = GGUI.alignment;
+		anchorLegacy = GGUI.anchorLegacy;
 	}
+
+	/// <summary> Reference to the RectTransform of the created transform, once it exists. </summary>
+	public RectTransform liveObject = null;
 
 	/// <summary> Optional position in space relative to parent </summary>
 	public Rect? position = null;
 	/// <summary> Optional offsets, pixels to expand relative to parent </summary>
 	public Rect? offsets = null;
+	
 	/// <summary> Color of this control's images </summary>
 	public Color color = Color.white;
 	/// <summary> Color of this control's text </summary>
 	public Color textColor = Color.white;
+	/// <summary> FontSize override if greater than 0 </summary>
+	public float fontSize = -1;
+	/// <summary> TextMeshPro alignment override. </summary>
+	public TextAlignmentOptions? alignment;
+	/// <summary> Legacy Text alignment override. </summary>
+	public TextAnchor? anchorLegacy;
+
 	/// <summary> Is this control active? </summary>
 	public bool active = true;
 	/// <summary> Kind of this control, eg Button, Text, Panel, Slider, etc. </summary>
@@ -45,8 +58,11 @@ public class GGUIControl {
 	/// <summary> Delegate to call when editing finishes, if supported </summary>
 	public Delegate onEndEditCallback;
 
-	/// <summary> FontSize override if greater than 0 </summary>
-	public float fontSize = -1;
+	/// <summary> If present, called when the element and its children are fully loaded. </summary>
+	public Delegate __OnReady = null;
+
+	/// <summary> If present, attached to the root of the control, and called when the object is enabled. </summary>
+	public Delegate __OnEnable = null;
 
 	/// <summary> Style to use to style the control </summary>
 	public GGUIStyle style = null;
@@ -82,6 +98,18 @@ public class GGUISkin : Dictionary<string, GGUIStyle> {
 
 /// <summary> Class holding IMGUI like functionality for creating UGUI controls </summary>
 public static partial class GGUI {
+
+	public static Action<RectTransform> fixScrollOffset = (rt) => {
+		ScrollRect scroller = rt.GetComponent<ScrollRect>();
+		if (scroller.verticalScrollbar != null) {
+			scroller.verticalNormalizedPosition = 0;
+			scroller.verticalNormalizedPosition = .90f;
+		}
+		if (scroller.horizontalScrollbar != null) {
+			scroller.horizontalNormalizedPosition = 1;
+			scroller.horizontalNormalizedPosition = 0;
+		}
+	};
 
 	/// <summary> Creates a new GGUISkin with the default settings. </summary>
 	/// <returns> Default GGUISkin </returns>
@@ -180,12 +208,22 @@ public static partial class GGUI {
 	public static GGUISkin defaultSkin = LoadDefaultSkin();
 	/// <summary> Current skin to render the next control with </summary>
 	public static GGUISkin skin;
+
+	//////////////////////////////////////////////////////////////////////
+	// Overrides ////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////
+
 	/// <summary> Color to render the next control with </summary>
 	public static Color color = Color.white;
 	/// <summary> Color to render the text of the next control with </summary>
 	public static Color textColor = Color.white;
 	/// <summary> Fontsize to use for the next control, &lt=0 means use default size. </summary>
 	public static float fontSize = -1;
+
+	/// <summary> TextAnchor to use to override legacy Text anchors. Set to null to disable overriding. </summary>
+	public static TextAnchor? anchorLegacy = null;
+	/// <summary> TextAlignment to use to override TMPro anchors. Set to null to disable overriding. </summary
+	public static TextAlignmentOptions? alignment = null;
 
 	/// <summary> Cached sprites for fast access </summary>
 	static Dictionary<Texture2D, Sprite> spriteCache = new Dictionary<Texture2D, Sprite>();
@@ -250,6 +288,7 @@ public static partial class GGUI {
 	public static RectTransform Render(GGUIControl c, RectTransform parent) {
 		RectTransform obj = new GameObject(c.kind).AddComponent<RectTransform>();
 		obj.SetParent(parent, false);
+		c.liveObject = obj;
 		
 		var attachTo = SetUpControl(c, obj);
 		
@@ -287,6 +326,19 @@ public static partial class GGUI {
 			if (scrollRect.horizontalScrollbar) { scrollRect.horizontalScrollbar.value = 0; }
 
 
+		}
+
+		var ctrl = obj.AddComponent<GGUI_Control>();
+		if (c.__OnEnable != null) {
+			ctrl.__OnEnable = c.__OnEnable as Action<RectTransform>;
+		}
+
+		if (c.__OnReady != null) {
+			Action<RectTransform> rtOnReady = c.__OnReady as Action<RectTransform>;
+			if (rtOnReady != null) { rtOnReady(obj); }
+
+			Action<GGUIControl> gcOnReady = c.__OnReady as Action<GGUIControl>;
+			if (gcOnReady != null) { gcOnReady(c);}
 
 		}
 
@@ -347,6 +399,8 @@ public static partial class GGUI {
 		tmp.color = (!c.active && c.style.colors != null) ? c.textColor * c.style.colors.Value.disabledColor : c.textColor;
 
 		StyleText(style, tmp);
+
+		if (c.alignment != null) { tmp.alignment = c.alignment.Value; }
 	}
 
 	/// <summary> Styles a TextMeshPro component </summary>
@@ -375,7 +429,10 @@ public static partial class GGUI {
 		if (fontSize > 0) { text.fontSize = (int)fontSize; }
 		
 		text.color = (!c.active && c.style.colors != null) ? c.textColor * c.style.colors.Value.disabledColor : c.textColor;
-		StyleTextLegacy(style, text);	
+		StyleTextLegacy(style, text);
+
+		if (c.anchorLegacy != null) { text.alignment = c.anchorLegacy.Value; }
+
 	}
 
 	/// <summary> Styles a legacy Text component </summary>
@@ -539,7 +596,7 @@ public static partial class GGUI {
 	/// <param name="c"> Control information </param>
 	/// <param name="obj"> Control <see cref="RectTransform"/> </param>
 	public static void MakeItATextField(GGUIControl c, RectTransform obj) {
-		var label = AttachText(c, obj, new Rect(0f, 0f, .5f, 1f));
+		AttachText(c, obj, new Rect(0f, 0f, .5f, 1f));
 		Rect right = new Rect(.5f, 0f, .5f, 1f);
 		string initialValue = (string)c.initialValue;
 
@@ -811,69 +868,81 @@ public static partial class GGUI {
 	/// <param name="inside"> Function to call to generate controls to nest. </param>
 	/// <remarks> Same as a call to <see cref="Push"/>, all of the instructions of <paramref name="inside"/>, and then a call to <see cref="Pop"/>. </remarks>
 	public static void Nest(Action inside) {
+		
 		Push();
 		inside();
 		Pop();
+		
 	}
 
 	/// <summary> Nests all of the controls created by <paramref name="inside"/> into a <see cref="Panel"/> </summary>
 	/// <param name="inside"> Function to call to generate controls to nest. </param>
 	/// <remarks> Same as a call to <see cref="Panel"/>(<paramref name="position"/>), a call to <see cref="Push"/>, all of the instructions of <paramref name="inside"/>, and then a call to <see cref="Pop"/>. </remarks>
-	public static void NestPanel(Rect? position, Action inside) {
-		Panel(position);
+	/// <returns> Created control </returns>
+	public static GGUIControl NestPanel(Rect? position, Action inside) {
+		var ct = Panel(position);
 		Push();
 		inside();
 		Pop();
+		return ct;
 	}
 	/// <summary> Nests all of the controls created by <paramref name="inside"/> into a <see cref="Box"/> </summary>
 	/// <param name="inside"> Function to call to generate controls to nest. </param>
 	/// <remarks> Same as a call to <see cref="Box"/>(<paramref name="position"/>, <paramref name="text"/>), a call to <see cref="Push"/>, all of the instructions of <paramref name="inside"/>, and then a call to <see cref="Pop"/>. </remarks>
-	public static void NestBox(Rect? position, string text, Action inside) {
-		Box(position, text);
+	/// <returns> Created control </returns>
+	public static GGUIControl NestBox(Rect? position, string text, Action inside) {
+		var ct = Box(position, text);
 		Push();
 		inside();
 		Pop();
+		return ct;
 	}
 
 	/// <summary> Nests all of the controls created by <paramref name="inside"/> into a <see cref="VertScrollView"/> </summary>
 	/// <param name="inside"> Function to call to generate controls to nest. </param>
 	/// <remarks> Same as a call to <see cref="VertScrollView"/>(<paramref name="position"/>, <paramref name="scrollbarWidth"/>), a call to <see cref="Push"/>, all of the instructions of <paramref name="inside"/>, and then a call to <see cref="Pop"/>. </remarks>
-	public static void NestVertScroll(Rect? position, int scrollbarWidth, Action inside) {
-		VertScrollView(position, scrollbarWidth);
+	/// <returns> Created control </returns>
+	public static GGUIControl NestVertScroll(Rect? position, int scrollbarWidth, Action inside) {
+		var ct = VertScrollView(position, scrollbarWidth);
 		Push();
 		inside();
 		Pop();
+		return ct;
 	}
 
 	/// <summary> Creates a Panel with the current style/colors. </summary>
 	/// <param name="position"> Normalized Position Rect to create the panel at </param>
-	public static void Panel(Rect? position = null) {
+	/// <returns> Created control </returns>
+	public static GGUIControl Panel(Rect? position = null) {
 		Next();
-		lastControl = new GGUIControl() { position = position, kind = "Panel", style = skin["panel"] };
+		return lastControl = new GGUIControl() { position = position, kind = "Panel", style = skin["panel"] };
 	}
 	/// <summary> Creates a TextMeshPro with the current style/colors </summary>
 	/// <param name="position"> Normalized Position Rect to create the text at </param>
 	/// <param name="text"> Text to put into the control </param>
-	public static void Text(Rect? position, string text = "") {
+	/// <returns> Created control </returns>
+	public static GGUIControl Text(Rect? position, string text = "") {
 		Next();
-		lastControl = new GGUIControl() { position = position, kind = "Text", content = text, style = skin["text"] };
+		return lastControl = new GGUIControl() { position = position, kind = "Text", content = text, style = skin["text"] };
 	}
 
 	/// <summary> Creates a Box </summary>
 	/// <param name="position"> Normalized Position Rect to create the text at </param>
 	/// <param name="text"> Text to put into the control </param>
-	public static void Box(Rect? position, string text) {
+	/// <returns> Created control </returns>
+	public static GGUIControl Box(Rect? position, string text) {
 		Next();
-		lastControl = new GGUIControl() { position = position, kind = "Box", content = text, style = skin["box"] };
+		return lastControl = new GGUIControl() { position = position, kind = "Box", content = text, style = skin["box"] };
 	}
 
 	/// <summary> Creates a Button </summary>
 	/// <param name="position"> Normalized Position Rect to create the text at </param>
 	/// <param name="text"> Text to put into the control </param>
 	/// <param name="callback"> Function to call when the button is clicked. </param>
-	public static void Button(Rect? position, string text, Action callback = null) {
+	/// <returns> Created control </returns>
+	public static GGUIControl Button(Rect? position, string text, Action callback = null) {
 		Next();
-		lastControl = new GGUIControl() { position = position, kind = "Button", content = text, style = skin["button"], onModifiedCallback = callback };
+		return lastControl = new GGUIControl() { position = position, kind = "Button", content = text, style = skin["button"], onModifiedCallback = callback };
 	}
 
 	/// <summary> Creates a Toggle/Checkbox control </summary>
@@ -881,9 +950,10 @@ public static partial class GGUI {
 	/// <param name="text"> Text to put into the control </param>
 	/// <param name="value"> Initial value of the control </param>
 	/// <param name="callback"> Function to call when the control is changed. </param>
-	public static void Toggle(Rect? position, string text, bool value, Action<bool> callback = null) {
+	/// <returns> Created control </returns>
+	public static GGUIControl Toggle(Rect? position, string text, bool value, Action<bool> callback = null) {
 		Next();
-		lastControl = new GGUIControl() { position = position, initialValue = value, kind = "Toggle", content = text, style = skin["toggle"], onModifiedCallback = callback };
+		return lastControl = new GGUIControl() { position = position, initialValue = value, kind = "Toggle", content = text, style = skin["toggle"], onModifiedCallback = callback };
 	}
 
 	/// <summary> Creates a Slider control </summary>
@@ -893,9 +963,10 @@ public static partial class GGUI {
 	/// <param name="min"> Minimum value of range </param>
 	/// <param name="max"> Maximum value of range </param>
 	/// <param name="callback"> Function to call when the control is changed </param>
-	public static void Slider(Rect? position, string label, float value, float min, float max, Action<float> callback = null) {
+	/// <returns> Created control </returns>
+	public static GGUIControl Slider(Rect? position, string label, float value, float min, float max, Action<float> callback = null) {
 		Next();
-		lastControl = new GGUIControl() { position = position, initialValue = value, info = new object[] { min, max }, kind = "Slider", content = label, style = skin["slider"], onModifiedCallback = callback };
+		return lastControl = new GGUIControl() { position = position, initialValue = value, info = new object[] { min, max }, kind = "Slider", content = label, style = skin["slider"], onModifiedCallback = callback };
 	}
 
 	/// <summary> Creates a TextField control </summary>
@@ -905,9 +976,10 @@ public static partial class GGUI {
 	/// <param name="placeholder"> Placeholder text (when control is empty) </param>
 	/// <param name="onChanged"> Function to call when the control is changed </param>
 	/// <param name="onEndEdit"> Function to call when editing is finished </param>
-	public static void TextField(Rect? position, string text, string value, string placeholder, Action<string> onChanged = null, Action<string> onEndEdit = null) {
+	/// <returns> Created control </returns>
+	public static GGUIControl TextField(Rect? position, string text, string value, string placeholder, Action<string> onChanged = null, Action<string> onEndEdit = null) {
 		Next();
-		lastControl = new GGUIControl() { position = position, initialValue = value, info = new object[] { placeholder }, kind = "TextField", content = text, style = skin["inputField"], onModifiedCallback = onChanged, onEndEditCallback = onEndEdit, };
+		return lastControl = new GGUIControl() { position = position, initialValue = value, info = new object[] { placeholder }, kind = "TextField", content = text, style = skin["inputField"], onModifiedCallback = onChanged, onEndEditCallback = onEndEdit, };
 	}
 
 	/// <summary> Creates a vertical scroll view </summary>
@@ -916,9 +988,10 @@ public static partial class GGUI {
 	/// <param name="sensitivity"> Optional. Sensitivity value </param>
 	/// <param name="inertia"> Optional. Interia value</param>
 	/// <param name="elasticity"> Optional, Elasticity value </param>
-	public static void VertScrollView(Rect? position, int scrollbarWidth = 32, float sensitivity = 66, float inertia = .135f, float elasticity = .1f) {
+	/// <returns> Created control </returns>
+	public static GGUIControl VertScrollView(Rect? position, int scrollbarWidth = 32, float sensitivity = 66, float inertia = .135f, float elasticity = .1f) {
 		Next();
-		lastControl = new GGUIControl() { position = position, info = new object[] { scrollbarWidth, sensitivity, inertia, elasticity }, kind = "VerticalScrollView", style = skin["vertScrollView"] };
+		return lastControl = new GGUIControl() { position = position, info = new object[] { scrollbarWidth, sensitivity, inertia, elasticity }, kind = "VerticalScrollView", style = skin["vertScrollView"] };
 	}
 
 
