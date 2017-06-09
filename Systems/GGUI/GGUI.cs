@@ -697,6 +697,8 @@ public static partial class GGUI {
 		viewport.offsetMax = new Vector2(-width, 0);
 		
 		var content = AttachImage(c, viewport, -1, new Rect(0, 0, 1, 1));
+		// Just disable the image- it ends up covering up the above image. 
+		content.GetComponent<Image>().enabled = false;
 		content.gameObject.name = "Content";
 		
 		var scrollbar = AttachImage(c, obj, 0, new Rect(1, 0, 0, 1));
