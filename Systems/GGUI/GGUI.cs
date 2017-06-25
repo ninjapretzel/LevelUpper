@@ -64,11 +64,34 @@ public class GGUIControl {
 	/// <summary> If present, attached to the root of the control, and called when the object is enabled. </summary>
 	public Delegate __OnEnable = null;
 
+	/// <summary> Holds a delegate that will be called every frame to update a live control </summary>
+	public Delegate __Live = null;
+
 	/// <summary> Style to use to style the control </summary>
 	public GGUIStyle style = null;
 
 	/// <summary> Nested controls, if any. </summary>
 	public List<GGUIControl> children = new List<GGUIControl>();
+
+	/// <summary> Hooks up a callback to be called when the control is ready. </summary>
+	/// <param name="callback"> Callback taking the RectTransform of the control. </param>
+	/// <returns> The GGUIControl that the function was called on </returns>
+	public GGUIControl OnReadyRect(Action<RectTransform> callback) { __OnReady = callback; return this; }
+
+	/// <summary> Hooks up a callback to be called when the control is ready. </summary>
+	/// <param name="callback"> Callback on the GGUIControl once it is ready. </param>
+	/// /// <returns> The GGUIControl that the function was called on </returns>
+	public GGUIControl OnReady(Action<GGUIControl> callback) { __OnReady = callback; return this; }
+
+	/// <summary> Hooks up a callback to be called every time the control is enabled. </summary>
+	/// <param name="callback"> Callback on the RectTransform of the control. </param>
+	/// /// <returns> The GGUIControl that the function was called on </returns>
+	public GGUIControl OnEnable(Action<RectTransform> callback) { __OnEnable = callback; return this; }
+
+	/// <summary> Hooks up a callback to be called every frame the control exists. </summary>
+	/// <param name="callback"> Callback on the RectTransform of the control. </param>
+	/// /// <returns> The GGUIControl that the function was called on </returns>
+	public GGUIControl Update(Action<RectTransform> callback) { __Live = callback; return this; }
 
 }
 
@@ -113,7 +136,7 @@ public static partial class GGUI {
 
 	/// <summary> Creates a new GGUISkin with the default settings. </summary>
 	/// <returns> Default GGUISkin </returns>
-	public static GGUISkin LoadDefaultSkin() {
+	public static GGUISkin MakeDefaultSkin() {
 		missingSprite = Resources.Load<Sprite>("GGUI_Missing");
 
 		GGUISkin sk = new GGUISkin();
@@ -198,6 +221,11 @@ public static partial class GGUI {
 		return sk;
 	}
 
+	public static void LoadSkin(string resourcesPathToSkin) {
+		var data = Resources.Load<GGUISkinData>(resourcesPathToSkin);
+		skin = (data != null) ? data.skin : defaultSkin;
+	}
+
 	
 	/// <summary> History of created controls in the current function </summary>
 	public static Stack<GGUIControl> history = new Stack<GGUIControl>();
@@ -205,7 +233,7 @@ public static partial class GGUI {
 	/// <summary> Reference to a sprite to use if sprites are null (missing). </summary>
 	public static Sprite missingSprite;
 	/// <summary> Default skin reference. </summary>
-	public static GGUISkin defaultSkin = LoadDefaultSkin();
+	public static GGUISkin defaultSkin = MakeDefaultSkin();
 	/// <summary> Current skin to render the next control with </summary>
 	public static GGUISkin skin;
 
@@ -331,6 +359,10 @@ public static partial class GGUI {
 		var ctrl = obj.AddComponent<GGUI_Control>();
 		if (c.__OnEnable != null) {
 			ctrl.__OnEnable = c.__OnEnable as Action<RectTransform>;
+		}
+
+		if (c.__Live != null) {
+			ctrl.__Live = c.__Live as Action<RectTransform>;
 		}
 
 		if (c.__OnReady != null) {
