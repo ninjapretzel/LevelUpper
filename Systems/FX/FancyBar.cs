@@ -11,8 +11,10 @@ namespace LevelUpper.FX {
 		public static Texture2D _noise { get { return Resources.Load<Texture2D>("noise"); } }
 		///<summary> Default bar gradient texture </summary>
 		public static Texture2D _bar { get { return Resources.Load<Texture2D>("bar"); } }
-
+		/// <summary> White pixel </summary>
 		public static Texture2D pixel { get { return Resources.Load<Texture2D>("pixel"); } }
+		/// <summary> Black pixel </summary>
+		public static Texture2D blackPixel { get { return Resources.Load<Texture2D>("blackPixel"); } }
 
 		///<summary> Primary noise pattern </summary>
 		public Texture2D noiseA;
@@ -20,7 +22,7 @@ namespace LevelUpper.FX {
 		public Texture2D noiseB;
 		///<summary> Bar gradient pattern </summary>
 		public Texture2D bar;
-
+		
 		///<summary> Scale of Time.time on animation </summary>
 		public float timeScale = 1f;
 		///<summary> Offset from time position </summary>
@@ -38,7 +40,7 @@ namespace LevelUpper.FX {
 		/// <summary> Blow to RGB for middle bar, with negative delta</summary>
 		public float blow = .5f;
 
-		///<summary> Display bar left-to-right / right-to-left </summary>
+		///<summary> Display bar left-to-right (true)/ right-to-left (false)</summary>
 		public bool leftToRight = true;
 
 		///<summary> How dark is the background of the bar compared to the foreground? </summary>
@@ -84,9 +86,8 @@ namespace LevelUpper.FX {
 			r.height = obj.Pull<float>("height", 1);
 			return r;
 		}
-
 	#endif
-
+		
 		///<summary> Copy values from a source Object </summary>
 		public FancyBar(FancyBar s) { 
 			bar = s.bar;
@@ -103,15 +104,15 @@ namespace LevelUpper.FX {
 
 			darkening = s.darkening;
 			alpha = s.alpha;
-
 			scaleA = s.scaleA;
 			scaleB = s.scaleB;
 		}
 		///<summary> Clone this FancyBar </summary>
 		public FancyBar Clone() { return new FancyBar(this); }
+		public static readonly Rect unit = new Rect(0, 0, 1, 1);
 
 		///<summary> Draw this FancyBar in a given position on the screen, with a given fill.</summary>
-		public void Draw(Rect pos, float fill) {
+		public void Draw_GUI(Rect pos, float fill) {
 			float time = Time.time + timeOffset;
 			fill = Mathf.Clamp01(fill);
 
@@ -126,7 +127,7 @@ namespace LevelUpper.FX {
 			Rect filled = leftToRight ? pos.Left(fill) : pos.Right(fill);
 			Rect empty = !leftToRight ? pos.Left(1-fill) : pos.Right(1-fill);
 
-			Color baseColor = GUI.color.Alpha(1);
+			Color baseColor = oldColor.Alpha(1);
 			Color colorA = baseColor.ShiftHue(hueShiftA).Alpha(alpha);
 			Color colorB = baseColor.ShiftHue(hueShiftB).Alpha(alpha);
 
@@ -141,6 +142,8 @@ namespace LevelUpper.FX {
 
 			GUI.color = baseColor.MultRGB(darkening.Clamp01());
 			GUI.DrawTexture(empty, bar);
+
+			GUI.color = baseColor;
 			GUI.DrawTexture(filled, bar);
 
 			GUI.color = colorA;
@@ -159,11 +162,11 @@ namespace LevelUpper.FX {
 
 		}
 
-		public void Draw(Rect pos, float fill, float delta) {
+		public void Draw_GUI(Rect pos, float fill, float delta) {
 			float time = Time.time + timeOffset;
 			fill = fill.Clamp01();
-			if (delta == 0) { 
-				Draw(pos, fill); 
+			if (delta.Abs() < .0001f) { 
+				Draw_GUI(pos, fill); 
 				return;
 			}
 
@@ -189,7 +192,7 @@ namespace LevelUpper.FX {
 			Rect middle = leftToRight ? empty.Left(fillHi) : empty.Right(fillHi);
 			empty = !leftToRight ? empty.Left(1.0f - fillHi) : empty.Right(1.0f - fillHi);
 
-			Color baseColor = GUI.color.Alpha(1.0f);
+			Color baseColor = oldColor.Alpha(1.0f);
 			Color colorA = baseColor.ShiftHue(hueShiftA).Alpha(alpha);
 			Color colorB = baseColor.ShiftHue(hueShiftB).Alpha(alpha);
 
@@ -216,6 +219,7 @@ namespace LevelUpper.FX {
 			GUI.color = midColor;
 			GUI.DrawTexture(middle, bar);
 			
+			GUI.color = baseColor;
 			GUI.DrawTexture(filled, bar);
 
 			GUI.color = midColorA;

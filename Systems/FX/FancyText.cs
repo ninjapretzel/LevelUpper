@@ -27,7 +27,7 @@ namespace LevelUpper.FX {
 		public static TextDisplaySettings sets3d { 
 			get { return new TextDisplaySettings() {
 				fixedSpacing = true,
-				spacingRatio = .35f,
+				spacingRatio = .05f,
 				baseSize = 8f,
 				sizeScale = 4f,
 				baseVelocity =	new Vector3(0f, 3f, 0f), 

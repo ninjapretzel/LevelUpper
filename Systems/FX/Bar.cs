@@ -17,6 +17,11 @@ namespace LevelUpper.FX {
 		/// <summary> small texture with only white pixels</summary>
 		public static Texture2D pixel { get { return Texture2D.whiteTexture; } }
 
+		/// <summary> Default front texture </summary>
+		public Texture2D defaultFront { get { return Resources.Load<Texture2D>("barfront"); } }
+		/// <summary> Default back texture </summary>
+		public Texture2D defaultBack { get { return Resources.Load<Texture2D>("barback"); } }
+
 		/// <summary> Graphic to display on the 'foreground' (filled) </summary>
 		public Texture2D frontGraphic;
 		/// <summary> Graphic to display on the 'background' (empty) </summary>
@@ -104,6 +109,8 @@ namespace LevelUpper.FX {
 		}
 		
 		void Init() {
+			frontGraphic = defaultFront;
+			backGraphic = defaultBack;
 			normalizedArea = new Rect(0, .9f, 0, .1f);
 			repeat = new Rect(0, 0, 1, 1);
 		}
