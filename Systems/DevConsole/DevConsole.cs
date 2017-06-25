@@ -23,8 +23,6 @@ namespace LevelUpper {
 	/// </summary>
 	public class DevConsole : MonoBehaviour, ILogHandler {
 
-		[Tooltip("Text that will be initially displayed in the console.")]
-		[SerializeField] private string initialText = "";
 		/// <summary>Color of the text in the console.</summary>
 		public static Color color = Color.white;
 		/// <summary>Boolean value indicating whether to allow cheat commands to be run.</summary>
