@@ -61,23 +61,30 @@ namespace LevelUpper.Markdown {
 		
 		public static Dictionary<char, Color32> Defaults() {
 			Dictionary<char, Color32> codes = new Dictionary<char, Color32>();
-			codes['r'] = Color.red;
-			codes['o'] = new Color(1, .7f, 0);
-			codes['y'] = Color.yellow;
-			codes['g'] = Color.green;
+			// rainbow (roygbiv)
+			codes['r'] = new Color(.95f, .1f, 0);
+			codes['o'] = new Color(.8f, .6f, 0);
+			codes['y'] = new Color(1, .925f, .02f);
+			codes['g'] = new Color(.2f, 1f, 0f);
 			codes['b'] = new Color(.1f, .1f, 1);
-			codes['i'] = new Color(.3f, 0, 1);
+			codes['i'] = new Color(.35f, 0, 1);
 			codes['v'] = new Color(.8f, 0, 1);
 			
-			codes['c'] = Color.cyan;
+			// Cyan
+			codes['c'] = new Color(0f, .85f, .95f);
+
+			// White/blacK
 			codes['w'] = Color.white;
 			codes['k'] = Color.black;
 			
+			//
 			codes['u'] = Colors.HSV(76f/360f, .77f, .60f);
 			
+			// "Half" Grey
 			codes['h'] = new Color(.5f, .5f, .5f);
+
 			codes['q'] = new Color(.8f, .8f, .8f);
-			codes['e'] = new Color(1, .6f, 0);
+			codes['e'] = new Color(.95f, .45f, 0);
 			codes['t'] = new Color(.8f, 1, .8f);
 			codes['p'] = new Color(.8f, 1, .8f);
 			codes['j'] = new Color(.5259f, .7098f, .8508f);
@@ -92,16 +99,16 @@ namespace LevelUpper.Markdown {
 		
 		public static string ReplaceMarkdown(this string markdown) {
 			string str = markdown;
+			str = str.ReplaceColors();
 			str = str.ReplaceBolds();
 			str = str.ReplaceItalics();
 			
-			str = str.ReplaceColors();
 			
 			return str;
 		}
 		
 		public static string ReplaceColors(this string markdown) {
-			string str = markdown;
+			StringBuilder str = markdown;
 			//gotta be able to be >implying things
 			str = str.Replace(">", "\\u>");
 			bool open = false;
@@ -142,7 +149,7 @@ namespace LevelUpper.Markdown {
 		}
 		
 		public static string ReplaceBolds(this string markdown) {
-			string str = markdown;
+			StringBuilder str = markdown;
 			
 			while (bolds.IsMatch(str)) {
 				Match match = bolds.Match(str);
@@ -163,7 +170,7 @@ namespace LevelUpper.Markdown {
 		
 		
 		public static string ReplaceItalics(this string markdown) {
-			string str = markdown;
+			StringBuilder str = markdown;
 			
 			while (italics.IsMatch(str)) {
 				Match match = italics.Match(str);
