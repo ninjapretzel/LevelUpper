@@ -1187,7 +1187,7 @@ namespace LevelUpper {
 			if (OnException != null) {
 				OnException(exception, context);
 			}
-			Debug.logger.LogException(exception, context);
+			Debug.unityLogger.LogException(exception, context);
 		}
 
 		/// <summary>
@@ -1199,7 +1199,7 @@ namespace LevelUpper {
 		/// <param name="args">The arguments to insert into the <paramref name="format"/> string.</param>
 		public void LogFormat(LogType logType, UnityEngine.Object context, string format, params object[] args) {
 			// This will ultimately make it back into the console through LogCallback
-			Debug.logger.logHandler.LogFormat(logType, context, format, args);
+			Debug.unityLogger.logHandler.LogFormat(logType, context, format, args);
 		}
 	#endregion
 
