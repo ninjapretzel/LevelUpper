@@ -5,14 +5,21 @@ using System.Collections.Generic;
 namespace LevelUpper.Extensions {
 	public static class UnityUtils {
 	
+		/// <summary> Calculates the actual center point of a BoxCollider. </summary>
+		/// <param name="c"> BoxCollider to calculate. </param>
+		/// <returns> Center point of the given collider.</returns>
 		public static Vector3 GetCenter(this BoxCollider c) {
 			Vector3 pos = c.transform.position;
 			Vector3 offset = Vector3.Scale(c.center, c.transform.lossyScale);
 			return pos + c.transform.rotation * offset;
 		}
 	
+		/// <summary> Gets the first <typeparamref name="T"/> component on the given component, or in its parents. </summary>
+		/// <typeparam name="T"> Generic component type </typeparam>
+		/// <param name="c"> Component to begin search at </param>
+		/// <returns> First Component of type <typeparamref name="T"/> attached to <paramref name="c"/>'s Game object or any of its parents, or null if there are none. </returns>
 		public static T GetComponentOnOrAbove<T>(this Component c) where T : Component {
-			Transform test = c.transform;
+			Transform test = c?.transform;
 			Component check;
 			while (test != null) {
 				check = test.GetComponent<T>();
@@ -21,11 +28,15 @@ namespace LevelUpper.Extensions {
 			}
 			return null;
 		}
-	
+		
+		/// <summary> Gets the first <typeparamref name="T"/> component in its parents. </summary>
+		/// <typeparam name="T"> Generic component type </typeparam>
+		/// <param name="c"> Component to begin search at </param>
+		/// <returns> First Component of type <typeparamref name="T"/> attached to <paramref name="c"/>'s parents, or null if there are none. </returns>
 		public static T GetComponentAbove<T>(this Component c) where T : Component {
-			Transform test = c.transform;
+			Transform test = c?.transform;
 			Component check;
-			while (test.parent != null) {
+			while (test != null && test.parent != null) {
 				test = test.parent;
 				check = test.GetComponent<T>();
 				if (check) { return check as T; }
