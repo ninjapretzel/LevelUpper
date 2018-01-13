@@ -13,6 +13,14 @@ public class GGUIStyle : ScriptableObject {
 	public TMP_FontAsset font = null;
 	public Font fontLegacy = null;
 
+	public Texture2D texture = null;
+	public Sprite sprite = null;
+
+	public Sprite[] subSprites = empty;
+
+	public Material mat = null;
+	public ColorBlock? colors = null;
+
 	public float fontSize = -1;
 
 	public TextAlignmentOptions alignment = TextAlignmentOptions.Center;
@@ -27,18 +35,12 @@ public class GGUIStyle : ScriptableObject {
 	public bool autoSize = false;
 
 
-	public Texture2D texture = null;
-	public Sprite sprite = null;
-
-	public Sprite[] subSprites = empty;
-
-	public Material mat = null;
-	public ColorBlock? colors = null;
-
 	public Image.Type imageType = Image.Type.Sliced;
 	public bool preserveAspect = false;
 	public bool fillCenter = true;
 
+	/// <summary> Copys any non-null settings from another GGUIStyle. </summary>
+	/// <param name="other"> Other GGUIStyle to copy settings from </param>
 	public void CopySettings(GGUIStyle other) {
 		if (other.font != null) { font = other.font; }
 		if (other.fontLegacy != null) { fontLegacy = other.fontLegacy; }
@@ -70,5 +72,23 @@ public class GGUIStyle : ScriptableObject {
 		
 	}
 
-}
+	/// <summary> Copys default settings from another GGUIStyle into fields of this one </summary>
+	/// <param name="other"> Other GGUIStyle to copy settings from </param>
+	public void CopyDefaults(GGUIStyle other) {
+		if (other.font != null) { font = other.font; }
+		if (other.fontLegacy != null) { fontLegacy = other.fontLegacy; }
+		if (other.fontSize > 0) { fontSize = other.fontSize; }
 
+		if (other.texture != null) { texture = other.texture; }
+		if (other.sprite != null) { sprite = other.sprite; }
+
+		if (other.subSprites != empty && other.subSprites != null) {
+			subSprites = other.subSprites;
+		}
+
+		if (other.mat != null) { mat = other.mat; }
+		if (other.colors != null) { colors = other.colors; }
+
+	}
+
+}

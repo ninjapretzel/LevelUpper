@@ -55,20 +55,27 @@ public class GGUIControl {
 
 	/// <summary> Delegate to call when changed, if supported </summary>
 	public Delegate onModifiedCallback;
+
 	/// <summary> Delegate to call when editing finishes, if supported </summary>
 	public Delegate onEndEditCallback;
 
 	/// <summary> If present, called when the element and its children are fully loaded. </summary>
-	public Delegate __OnReady = null;
+	public Action<GGUIControl> __OnReady = null;
+
+	/// <summary> If present, called when the element and its children are fully loaded, using the RectTransform . </summary>
+	public Action<RectTransform> __OnReadyRect = null;
 
 	/// <summary> If present, attached to the root of the control, and called when the object is enabled. </summary>
-	public Delegate __OnEnable = null;
+	public Action<RectTransform> __OnEnable = null;
 
 	/// <summary> Holds a delegate that will be called every frame to update a live control </summary>
-	public Delegate __Live = null;
+	public Action<RectTransform> __Live = null;
 
 	/// <summary> Style to use to style the control </summary>
 	public GGUIStyle style = null;
+
+	/// <summary> Sprite override to style the control </summary>
+	public Sprite sprite = null;
 
 	/// <summary> Nested controls, if any. </summary>
 	public List<GGUIControl> children = new List<GGUIControl>();
@@ -76,22 +83,41 @@ public class GGUIControl {
 	/// <summary> Hooks up a callback to be called when the control is ready. </summary>
 	/// <param name="callback"> Callback taking the RectTransform of the control. </param>
 	/// <returns> The GGUIControl that the function was called on </returns>
-	public GGUIControl OnReadyRect(Action<RectTransform> callback) { __OnReady = callback; return this; }
+	public GGUIControl OnReadyRect(Action<RectTransform> callback) { __OnReadyRect += callback; return this; }
 
 	/// <summary> Hooks up a callback to be called when the control is ready. </summary>
 	/// <param name="callback"> Callback on the GGUIControl once it is ready. </param>
 	/// /// <returns> The GGUIControl that the function was called on </returns>
-	public GGUIControl OnReady(Action<GGUIControl> callback) { __OnReady = callback; return this; }
+	public GGUIControl OnReady(Action<GGUIControl> callback) { __OnReady += callback; return this; }
 
 	/// <summary> Hooks up a callback to be called every time the control is enabled. </summary>
 	/// <param name="callback"> Callback on the RectTransform of the control. </param>
 	/// /// <returns> The GGUIControl that the function was called on </returns>
-	public GGUIControl OnEnable(Action<RectTransform> callback) { __OnEnable = callback; return this; }
+	public GGUIControl OnEnable(Action<RectTransform> callback) { __OnEnable += callback; return this; }
 
 	/// <summary> Hooks up a callback to be called every frame the control exists. </summary>
 	/// <param name="callback"> Callback on the RectTransform of the control. </param>
 	/// /// <returns> The GGUIControl that the function was called on </returns>
-	public GGUIControl Update(Action<RectTransform> callback) { __Live = callback; return this; }
+	public GGUIControl Update(Action<RectTransform> callback) { __Live += callback; return this; }
+
+	/// <summary> Sends a click event to a button, if it exists. </summary>
+	public void Clicked() { liveObject?.GetComponent<Button>()?.onClick.Invoke(); }
+
+	/// <summary> Focuses the relevant selectable </summary>
+	public void Focus() { liveObject?.GetComponent<Selectable>()?.Focus(); }
+
+	/// <summary> Sets the text content directly on the GUIControl's live element. </summary>
+	/// <param name="str"> Text to set </param>
+	public void Text(string str) {
+		TextMeshProUGUI tmp = liveObject?.GetComponent<TextMeshProUGUI>();
+		if (tmp != null) { tmp.text = str; }
+
+		Text txt = liveObject?.GetComponent<Text>();
+		if (txt != null) { txt.text = str; }
+
+		InputField field = liveObject?.GetComponent<InputField>();
+		if (field != null) { field.text = str; }
+	}
 
 }
 
@@ -99,11 +125,18 @@ public class GGUIControl {
 /// <summary> Class holding a set of styles. </summary>
 public class GGUISkin : Dictionary<string, GGUIStyle> {
 
+	[NonSerialized] public string name = "Unnamed";
+
 	public GGUISkin() : base() { }
 	public GGUISkin(GGUIStyle style) : base() { defaultStyle = style; }
 	public GGUISkin(GGUIStyle style, IDictionary<string, GGUIStyle> data) : base(data) { defaultStyle = style; }
 
+	/// <summary> Default style to use for "missing" styles. </summary>
 	public GGUIStyle defaultStyle = ScriptableObject.CreateInstance<GGUIStyle>();
+
+	/// <summary> Indexer for string -> GGUIStyle </summary>
+	/// <param name="key"> Name of style to get/set </param>
+	/// <returns> style associated with key, or the <see cref="defaultStyle"/> if no style with <paramref name="key"/> exists. </returns>
 	public new GGUIStyle this[string key] {
 		get {
 			if (ContainsKey(key)) {
@@ -113,8 +146,13 @@ public class GGUISkin : Dictionary<string, GGUIStyle> {
 			return defaultStyle;
 		}
 		set {
-			var goy = (Dictionary<string, GGUIStyle>)this;
-			goy[key] = value;
+			if (value != null) {
+				var goy = (Dictionary<string, GGUIStyle>)this;
+				goy[key] = value;
+			} else {
+				if (ContainsKey(key)) { Remove(key); }
+			}
+
 		}
 	}
 }
@@ -122,6 +160,14 @@ public class GGUISkin : Dictionary<string, GGUIStyle> {
 /// <summary> Class holding IMGUI like functionality for creating UGUI controls </summary>
 public static partial class GGUI {
 
+	/// <summary> Focuses a given selectable, and activates input if needed </summary>
+	/// <param name="selectable"> Selectable to focus </param>
+	public static void Focus(this Selectable selectable) {
+		selectable.Select();
+		(selectable as InputField)?.ActivateInputField();
+	}
+
+	/// <summary> Lambda for use with OnReadyRect which fixes issues with the ScrollRect's scrollbars. </summary>
 	public static Action<RectTransform> fixScrollOffset = (rt) => {
 		ScrollRect scroller = rt.GetComponent<ScrollRect>();
 		if (scroller.verticalScrollbar != null) {
@@ -133,18 +179,20 @@ public static partial class GGUI {
 			scroller.horizontalNormalizedPosition = 0;
 		}
 	};
-
+	
 	/// <summary> Creates a new GGUISkin with the default settings. </summary>
 	/// <returns> Default GGUISkin </returns>
 	public static GGUISkin MakeDefaultSkin() {
 		missingSprite = Resources.Load<Sprite>("GGUI_Missing");
 
 		GGUISkin sk = new GGUISkin();
+		sk.name = "Default Skin";
+
 		var style = sk.defaultStyle;
+		style.name = sk.name;
 		style.fontSize = 36;
 		style.font = Resources.Load<TMP_FontAsset>("GGUI_Default");
 		style.fontLegacy = Resources.Load<Font>("GGUI_Default");
-		Debug.Log(style.font);
 		style.texture = Resources.Load<Texture2D>("GGUI_Default");
 		style.sprite = Resources.Load<Sprite>("GGUI_Default");
 
@@ -160,15 +208,23 @@ public static partial class GGUI {
 
 		style.alignment = TextAlignmentOptions.Center;
 
+		var empty = ScriptableObject.Instantiate(style);
+		empty.sprite = null;
+		empty.texture = null;
+		sk["empty"] = empty;
+
 		
 		var button = ScriptableObject.Instantiate(style);
 		button.colors = colors; // Note: Nullables don't get serialized :(
 		button.sprite = Resources.Load<Sprite>("GGUI_Button");
+		button.name += "_button";
 		sk["button"] = button;
-
+		
+		
 		var box = ScriptableObject.Instantiate(style);
 		box.sprite = Resources.Load<Sprite>("GGUI_Default");
 		box.alignment = TextAlignmentOptions.TopLeft;
+		box.name += "_box";
 		sk["box"] = box;
 
 		var toggle = ScriptableObject.Instantiate(style);
@@ -179,8 +235,18 @@ public static partial class GGUI {
 		toggle.preserveAspect = true;
 		toggle.alignment = TextAlignmentOptions.Left;
 		toggle.overflow = TextOverflowModes.Masking;
+		toggle.name += "_toggle";
 		sk["toggle"] = toggle;
 
+		var spr = ScriptableObject.Instantiate(style);
+		spr.sprite = null;
+		spr.alignment = TextAlignmentOptions.Center;
+		spr.imageType = Image.Type.Simple;
+		spr.preserveAspect = true;
+		spr.alignment = TextAlignmentOptions.Center;
+		spr.overflow = TextOverflowModes.Overflow;
+		spr.name += "_sprite";
+		sk["sprite"] = spr;
 
 		var slider = ScriptableObject.Instantiate(style);
 		slider.colors = colors ;// Note: Nullables don't get serialized :(
@@ -194,6 +260,7 @@ public static partial class GGUI {
 		// The handle is Simple/Preserve Aspect,
 		// But the backgrounds are sliced/simple with fillCenter and are intended to be stretched.
 		slider.preserveAspect = false; 
+		slider.name += "_slider";
 		sk["slider"] = slider;
 
 		var inputField = ScriptableObject.Instantiate(style);
@@ -205,6 +272,7 @@ public static partial class GGUI {
 		inputField.anchorLegacy = TextAnchor.MiddleLeft; // Input field is left aligned
 		inputField.horWrapLegacy = HorizontalWrapMode.Wrap;
 		inputField.verWrapLegacy = VerticalWrapMode.Truncate;
+		inputField.name += "_inputField";
 		sk["inputField"] = inputField;
 
 		var vertScrollView = ScriptableObject.Instantiate(style);
@@ -216,14 +284,20 @@ public static partial class GGUI {
 			Resources.Load<Sprite>("GGUI_VScrollBG"),
 			Resources.Load<Sprite>("GGUI_VScrollHandle"),
 		};
+		vertScrollView.name += "_vertScrollView";
 		sk["vertScrollView"] = vertScrollView;
 
+		style.name += "_default";
 		return sk;
 	}
 
 	public static void LoadSkin(string resourcesPathToSkin) {
-		var data = Resources.Load<GGUISkinData>(resourcesPathToSkin);
+		GGUISkinData data = Resources.Load<GGUISkinData>(resourcesPathToSkin);
 		skin = (data != null) ? data.skin : defaultSkin;
+		skin.name = data.name;
+		if (skin.defaultStyle != null) {
+			skin.defaultStyle.name = data.name + "_default";
+		}
 	}
 
 	
@@ -352,27 +426,14 @@ public static partial class GGUI {
 			scrollRect.content = ghostContent;
 			if (scrollRect.verticalScrollbar) { scrollRect.verticalScrollbar.value = 1; }
 			if (scrollRect.horizontalScrollbar) { scrollRect.horizontalScrollbar.value = 0; }
-
-
+			
 		}
 
 		var ctrl = obj.AddComponent<GGUI_Control>();
-		if (c.__OnEnable != null) {
-			ctrl.__OnEnable = c.__OnEnable as Action<RectTransform>;
-		}
+		ctrl.control = c;
 
-		if (c.__Live != null) {
-			ctrl.__Live = c.__Live as Action<RectTransform>;
-		}
-
-		if (c.__OnReady != null) {
-			Action<RectTransform> rtOnReady = c.__OnReady as Action<RectTransform>;
-			if (rtOnReady != null) { rtOnReady(obj); }
-
-			Action<GGUIControl> gcOnReady = c.__OnReady as Action<GGUIControl>;
-			if (gcOnReady != null) { gcOnReady(c);}
-
-		}
+		c.__OnReady?.Invoke(c);
+		c.__OnReadyRect?.Invoke(obj);
 
 		return obj;
 	}
@@ -386,11 +447,17 @@ public static partial class GGUI {
 
 		if (c.kind == "Text") { AddText(c, obj); }
 		if (c.kind == "Panel") { AddImage(c, obj); }
+		if (c.kind == "Sprite") { AddImage(c, obj); }
+
 		if (c.kind == "Box") { MakeItABox(c, obj); }
 		if (c.kind == "Button") { MakeItAButton(c, obj); }
 		if (c.kind == "Toggle") { MakeItAToggle(c, obj); }
 		if (c.kind == "Slider") { MakeItASlider(c, obj); }
 		if (c.kind == "TextField") { MakeItATextField(c, obj); }
+		if (c.kind == "PassField") {
+			MakeItATextField(c, obj);
+			obj.GetComponent<InputField>().contentType = (InputField.ContentType.Password);
+		}
 		if (c.kind == "VerticalScrollView") { MakeItAVerticalScrollView(c, obj); attachTo = obj.Find("Viewport/Content") as RectTransform; }
 
 		// Position is done last because some components like to mess with it.
@@ -447,6 +514,9 @@ public static partial class GGUI {
 			var scaler = tmp.AddComponent<GGUI_ScaleFontSize>();
 			scaler.fontSize = tmp.fontSize;
 		}
+		if (style.mat != null) {
+			tmp.fontSharedMaterial = style.mat;
+		}
 	}
 
 	/// <summary> Adds a legacy Text component to the given control </summary>
@@ -490,7 +560,11 @@ public static partial class GGUI {
 		var style = c.style;
 		var img = obj.AddComponent<Image>();
 		img.color = c.color;
+		if (c.sprite != null) {
+			img.sprite = c.sprite;
+		}
 		StyleImage(style, img, imageNumber);
+
 	}
 
 	/// <summary> Styles an Image component </summary>
@@ -498,23 +572,26 @@ public static partial class GGUI {
 	/// <param name="img"> Image component to apply to </param>
 	/// <param name="imageNumber"> Image number to use. Negatives mean use the 'Default' sprite, >= 0 means use that SubSprite of the style. </param>
 	public static void StyleImage(GGUIStyle style, Image img, int imageNumber = -1) {
-		img.type = style.imageType;
-		var sprite = style.sprite;
-		if (sprite == null && style.texture != null) {
-			sprite = GetSprite(style.texture);
-		}
-
-		if (imageNumber > -1) {
-			if (imageNumber < style.subSprites.Length) {
-				sprite = style.subSprites[imageNumber];
-			} else {
-				sprite = null;
+		if (img.sprite == null) {
+			img.type = style.imageType;
+			var sprite = style.sprite;
+			if (sprite == null && style.texture != null) {
+				sprite = GetSprite(style.texture);
 			}
+
+
+			if (imageNumber > -1) {
+				if (imageNumber < style.subSprites.Length) {
+					sprite = style.subSprites[imageNumber];
+				} else {
+					sprite = null;
+				}
+			}
+
+			if (sprite == null) { sprite = missingSprite; }
+			img.sprite = sprite;
 		}
 
-		if (sprite == null) { sprite = missingSprite; }
-
-		img.sprite = sprite;
 		img.preserveAspect = style.preserveAspect;
 		img.fillCenter = style.fillCenter;
 	}
@@ -628,22 +705,27 @@ public static partial class GGUI {
 	/// <param name="c"> Control information </param>
 	/// <param name="obj"> Control <see cref="RectTransform"/> </param>
 	public static void MakeItATextField(GGUIControl c, RectTransform obj) {
-		AttachText(c, obj, new Rect(0f, 0f, .5f, 1f));
-		Rect right = new Rect(.5f, 0f, .5f, 1f);
+		Rect rest = new Rect(0, 0, 1f, 1f);
 		string initialValue = (string)c.initialValue;
+		
+		if (c.content.Length > 1) {
+			AttachText(c, obj, new Rect(0f, 0f, .5f, 1f));
+			rest = new Rect(.5f, 0f, .5f, 1f);
+		}
 
 		AddImage(c, obj, -1);
 		var bg = obj.GetComponent<Image>();
 		
-		var entry = AttachLegacyText(c, obj, right);
+		var entry = AttachLegacyText(c, obj, rest);
 		var entryText = entry.GetComponent<Text>();
 		entryText.supportRichText = false;
 		
-		var place = AttachLegacyText(c, obj, right);
+		var place = AttachLegacyText(c, obj, rest);
 		var placeText = place.GetComponent<Text>();
 		placeText.supportRichText = false;
 		placeText.fontStyle = FontStyle.Italic;
-		placeText.color = c.textColor;
+		Color col = c.textColor; col.a *= .5f;
+		placeText.color = col;
 
 		var field = obj.AddComponent<InputField>();
 		field.targetGraphic = bg.GetComponent<Image>();
@@ -665,7 +747,10 @@ public static partial class GGUI {
 		}
 		if (c.onEndEditCallback != null) {
 			Action<string> callback = (Action<string>)c.onEndEditCallback;
-			field.onEndEdit.AddListener((s) => callback(s));
+			
+			field.onEndEdit.AddListener((s) => { 
+				if (Input.GetKeyDown(KeyCode.Return)) { callback(s); }
+			} );
 		}
 	}
 
@@ -944,14 +1029,23 @@ public static partial class GGUI {
 		return ct;
 	}
 
-	/// <summary> Creates a Panel with the current style/colors. </summary>
+	/// <summary> Creates a sprite with the current style/colors. <para> Use this to display images as elements, for example, a rectangle, or a character's portrait. </para> </summary>
+	/// <param name="position"> Normalized Position Rect to create the sprite inside of </param>
+	/// <param name="sprite"> Provided sprite to use </param>
+	/// <returns> Created control </returns>
+	public static GGUIControl DrawSprite(Rect? position = null, Sprite sprite = null) {
+		Next();
+		return lastControl = new GGUIControl() { position = position, kind = "Sprite", style = skin["sprite"], sprite = sprite };
+	}
+	
+	/// <summary> Creates a Panel with the current style/colors. <para> Use this to create containers for nesting other controls within. </para> </summary>
 	/// <param name="position"> Normalized Position Rect to create the panel at </param>
 	/// <returns> Created control </returns>
 	public static GGUIControl Panel(Rect? position = null) {
 		Next();
 		return lastControl = new GGUIControl() { position = position, kind = "Panel", style = skin["panel"] };
 	}
-	/// <summary> Creates a TextMeshPro with the current style/colors </summary>
+	/// <summary> Creates a TextMeshPro with the current style/colors <para> Use this to display arbitrary text. </para> </summary>
 	/// <param name="position"> Normalized Position Rect to create the text at </param>
 	/// <param name="text"> Text to put into the control </param>
 	/// <returns> Created control </returns>
@@ -960,7 +1054,7 @@ public static partial class GGUI {
 		return lastControl = new GGUIControl() { position = position, kind = "Text", content = text, style = skin["text"] };
 	}
 
-	/// <summary> Creates a Box </summary>
+	/// <summary> Creates a Box <para> Use this to display only text, or brief text with buttons nested within a panel. </para> </summary>
 	/// <param name="position"> Normalized Position Rect to create the text at </param>
 	/// <param name="text"> Text to put into the control </param>
 	/// <returns> Created control </returns>
@@ -969,7 +1063,7 @@ public static partial class GGUI {
 		return lastControl = new GGUIControl() { position = position, kind = "Box", content = text, style = skin["box"] };
 	}
 
-	/// <summary> Creates a Button </summary>
+	/// <summary> Creates a Button <para> The use for this should be pretty obvious: Short text on a clickable box with an action being called when clicked. </para> </summary>
 	/// <param name="position"> Normalized Position Rect to create the text at </param>
 	/// <param name="text"> Text to put into the control </param>
 	/// <param name="callback"> Function to call when the button is clicked. </param>
@@ -1016,6 +1110,19 @@ public static partial class GGUI {
 		return lastControl = new GGUIControl() { position = position, initialValue = value, info = new object[] { placeholder }, kind = "TextField", content = text, style = skin["inputField"], onModifiedCallback = onChanged, onEndEditCallback = onEndEdit, };
 	}
 
+	/// <summary> Creates a TextField control with a password mask </summary>
+	/// <param name="position"> Normalized Position Rect to create the text at </param>
+	/// <param name="text"> Text to put into the control </param>
+	/// <param name="value"> Initial value of control </param>
+	/// <param name="placeholder"> Placeholder text (when control is empty) </param>
+	/// <param name="onChanged"> Function to call when the control is changed </param>
+	/// <param name="onEndEdit"> Function to call when editing is finished </param>
+	/// <returns> Created control </returns>
+	public static GGUIControl PassField(Rect? position, string text, string value, string placeholder, Action<string> onChanged = null, Action<string> onEndEdit = null) {
+		Next();
+		return lastControl = new GGUIControl() { position = position, initialValue = value, info = new object[] { placeholder }, kind = "PassField", content = text, style = skin["inputField"], onModifiedCallback = onChanged, onEndEditCallback = onEndEdit, };
+	}
+
 	/// <summary> Creates a vertical scroll view </summary>
 	/// <param name="position"> Normalized Position Rect to create the text at </param>
 	/// <param name="scrollbarWidth"> Width of the scroll bar, in pixels </param>
@@ -1040,4 +1147,30 @@ public static partial class GGUI {
 
 		return new Rect(topLeft.x, topLeft.y, bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
 	}
+
+	public static void SetHeight(this RectTransform rt, float height) {
+
+		rt.offsetMin = new Vector2(rt.offsetMin.x, -height);
+		rt.offsetMax = new Vector2(rt.offsetMax.x, 0);
+		
+	}
+	/*
+	 * 
+
+	/// <summary> Repositions a control relative to its parent, via anchors. </summary>
+	/// <param name="obj"> Control's RectTransform </param>
+	/// <param name="pos"> Normalized anchor coordinates </param>
+	/// <param name="off"> Pixel offset coordinates </param>
+	public static void Reposition(RectTransform obj, Rect pos, Rect off) {
+		float xmin = pos.x;
+		float xmax = pos.x + pos.width;
+		float ymax = 1f - pos.y;
+		float ymin = ymax - pos.height;
+
+		obj.anchorMin = new Vector2(xmin, ymin);
+		obj.anchorMax = new Vector2(xmax, ymax);
+		obj.offsetMin = new Vector2(-off.x, -off.y);
+		obj.offsetMax = new Vector2(off.width, off.height);
+	}
+	 * */
 }

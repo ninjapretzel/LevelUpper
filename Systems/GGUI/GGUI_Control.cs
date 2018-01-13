@@ -2,31 +2,25 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 
 public class GGUI_Control : MonoBehaviour {
 
-	public Action<RectTransform> __OnEnable = null;
-
-	public Action<RectTransform> __Live = null;
+	public GGUIControl control;
 
 	RectTransform rt { get { return transform as RectTransform; } }
-
-
-
+	
 	void Update() {
-		
-		if (__Live != null) {
-			__Live(rt);
-		}
+
+		control?.__Live?.Invoke(rt);
 
 	}
 	
 
 	void OnEnable() {
 
-		if (__OnEnable != null) {
-			__OnEnable(rt);
-		}
+		control?.__OnEnable?.Invoke(rt);
+
 
 	}
 
