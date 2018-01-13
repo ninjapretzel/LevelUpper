@@ -807,6 +807,29 @@ namespace LevelUpper.Extensions {
 						return null;
 					}
 				}
+				case "Char[]":
+				case "SByte[]":
+				case "Int16[]":
+				case "Int32[]":
+				case "Int64[]":
+				case "Byte[]":
+				case "UInt16[]":
+				case "UInt32[]":
+				case "UInt64[]":
+				case "Single[]":
+				case "Double[]": {
+					try {
+						// Use reflection to call the proper Parse method.
+						MethodInfo parseMethod = type.GetElementType().GetMethod("Parse", BindingFlags.Public | BindingFlags.Static, null, new Type[] { typeof(string) }, null);
+						Array ret = Array.CreateInstance(type.GetElementType(), parameters.Length);
+						for (int i = 0; i < parameters.Length; ++i) {
+							ret.SetValue(parseMethod.Invoke(null, new string[] { parameters[i] }), i);
+						}
+						return ret;
+					} catch (TargetInvocationException) { // Is thrown in place of the Parse method's exceptions
+						return null;
+					}
+				}
 				case "Boolean": {
 					if (parameters.Length != 1) { return null; }
 					if (parameters[0] == "1" || parameters[0].Equals("on", StringComparison.InvariantCultureIgnoreCase) || parameters[0].Equals("yes", StringComparison.InvariantCultureIgnoreCase)) {

@@ -426,6 +426,35 @@ namespace LevelUpper.Extensions {
 		}
 
 		/// <summary>
+		/// Returns the index of the first occurrence of <paramref name="value"/> inside of this <c>string</c> that is not between two instances of <paramref name="container"/>.
+		/// </summary>
+		/// <param name="st">The <c>string</c> to find the <paramref name="value"/> in.</param>
+		/// <param name="separator">Unicode character to find in the <c>string</c>.</param>
+		/// <param name="container">Container character. Any <paramref name="value"/> characters that occur between two instances of this character will be ignored.</param>
+		/// <returns>Index of the first occurrence of <paramref name="value"/> that is not between two instances of <paramref name="container"/>.</returns>
+		public static int IndexOfNotInContainer(this string st, char value, char container) {
+			if (st.IndexOf(container) < 0) { return st.IndexOf(value); }
+
+			bool inContainer = false;
+			char c;
+			for (int i = 0; i < st.Length; ++i) {
+				c = st[i];
+				if (c == container) {
+					inContainer = !inContainer;
+					continue;
+				}
+
+				if (!inContainer) {
+					if (c == value) {
+						return i;
+					}
+				}
+			}
+
+			return -1;
+		}
+
+		/// <summary>
 		/// Splits a <c>string</c> using a Unicode character, unless that character is between two instances of a container.
 		/// </summary>
 		/// <param name="st">The <c>string</c> to split</param>
@@ -433,7 +462,8 @@ namespace LevelUpper.Extensions {
 		/// <param name="container">Container character. Any <paramref name="separator"/> characters that occur between two instances of this character will be ignored</param>
 		/// <returns>Array of <c>string</c> objects that are the resulting substrings</returns>
 		public static string[] SplitUnlessInContainer(this string st, char separator, char container, StringSplitOptions options = StringSplitOptions.None) {
-			if (st.IndexOf(separator) < 0) { return new string[] { st }; }
+			if (st.Length == 2 && st[0] == container && st[1] == container) { return new string[0]; }
+			if (st.IndexOf(separator) < 0) { return new string[] { st.Trim(container) }; }
 			if (st.IndexOf(container) < 0) { return st.Split(new char[] { separator }, options); }
 
 			List<string> results = new List<string>();
