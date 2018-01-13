@@ -6,7 +6,6 @@ using LevelUpper.Extensions;
 
 #if UNITY_EDITOR
 using UnityEditor;
-#endif
 
 namespace LevelUpper.Editor {
 
@@ -109,16 +108,12 @@ namespace LevelUpper.Editor {
 		////////////////////////////////////////////////////////////////////////////////////////////////////
 		// Misc Wrapper Stuff
 		#region MISC Wrapper Stuff
-
-#if UNITY_EDITOR
+			
 		/// <summary> Shortcut to check if the editor is playing. </summary>
 		public static bool isPlaying { get { return EditorApplication.isPlaying; } }
 		/// <summary> Shortcut to check if the editor is playing or will enter playmode. </summary>
 		public static bool isPlayingOrWillChangePlaymode { get { return EditorApplication.isPlayingOrWillChangePlaymode; } }
-#else
-		/// <summary> Shortcut to check if the game is playing </summary>
-		public bool isPlaying { get { return Application.isPlaying; } }
-#endif
+
 
 		#endregion
 
@@ -521,8 +516,7 @@ namespace LevelUpper.Editor {
 		/// <summary> End drawing the given nested area, and return to the previous context. </summary>
 		/// <remarks> Must match one of the <see cref="BeginArea"/> method calls. </remarks>
 		public static void EndArea() { GUILayout.EndArea(); }
-
-#if UNITY_EDITOR
+		
 		/// <summary> Start laying out controls vertically. </summary>
 		/// <param name="options"> Options to change the display. </param>
 		/// <returns> The Rect created by the EditorGUILayout. </returns>
@@ -551,32 +545,6 @@ namespace LevelUpper.Editor {
 		public static Rect BeginHorizontal(string style, params GUILayoutOption[] options) { return EditorGUILayout.BeginHorizontal(style, options); }
 		/// <remarks> Must be matched with one of the calls to <see cref="BeginHorizontal"/></remarks>
 		public static void EndHorizontal() { EditorGUILayout.EndHorizontal(); }
-#else
-		/// <summary> Start laying out controls vertically. </summary>
-		/// <param name="options"> Options to change the display. </param>
-		/// <remarks> Must be matched with a call to <see cref="EndVertical"/>. </remarks>
-		public static void BeginVertical(params GUILayoutOption[] options) { GUILayout.BeginVertical(options); }
-		/// <summary> Start laying out controls vertically. </summary>
-		/// <param name="style"> Name of style to use for this area (eg, box, label, button etc) </param>
-		/// <param name="options"> Options to change the display. </param>
-		/// <remarks> Must be matched with a call to <see cref="EndVertical"/>. </remarks>
-		public static void BeginVertical(string style, params GUILayoutOption[] options) { GUILayout.BeginVertical(style, options); }
-		/// <summary> Stops laying out controls in a vertical area. </summary>
-		/// <remarks> Must be matched with one of the calls to <see cref="BeginVertical"/></remarks>
-		public static void EndVertical() { GUILayout.EndVertical(); }
-
-		/// <summary> Start laying out controls horizontally. </summary>
-		/// <param name="options"> Options to change the display. </param>
-		/// <remarks> Must be matched with a call to <see cref="EndHorizontal"/>. </remarks>
-		public static void BeginHorizontal(params GUILayoutOption[] options) { GUILayout.BeginHorizontal(options); }
-		/// <summary> Start laying out controls horizontally. </summary>
-		/// <param name="style"> Name of style to use for this area (eg, box, label, button etc) </param>
-		/// <param name="options"> Options to change the display. </param>
-		/// <remarks> Must be matched with a call to <see cref="EndHorizontal"/>. </remarks>
-		public static void BeginHorizontal(string style, params GUILayoutOption[] options) { GUILayout.BeginHorizontal(style, options); }
-		/// <remarks> Must be matched with one of the calls to <see cref="BeginHorizontal"/></remarks>
-		public static void EndHorizontal() { GUILayout.EndHorizontal(); }
-#endif
 
 		//////////////////////////////////
 		/////////////////////////////////
@@ -629,3 +597,5 @@ namespace LevelUpper.Editor {
 
 	}
 }
+
+#endif
