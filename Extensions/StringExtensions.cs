@@ -116,26 +116,26 @@ namespace LevelUpper.Extensions {
 		///<summary>Returns the substring of a string from the first instance of a character. (Not Inclusive)</summary>
 		public static string FromFirst(this string s, char c) {
 			int index = s.IndexOf(c);
-			if (index == -1) { return s; }
+			if (index == -1) { return ""; }
 			return s.Substring(index+1);
 		}
 		///<summary>Returns the substring of a string from the first instance of a string. (Not Inclusive)</summary>
 		public static string FromFirst(this string s, string c) {
 			int index = s.IndexOf(c);
-			if (index == -1) { return s; }
+			if (index == -1) { return ""; }
 			return s.Substring(index+c.Length);
 		}
 		
 		///<summary>Returns the substring of a string from the last instance of a character. (Not Inclusive)</summary>
 		public static string FromLast(this string s, char c) {
 			int lastIndex = s.LastIndexOf(c);
-			if (lastIndex == -1) { return s; }
+			if (lastIndex == -1) { return ""; }
 			return s.Substring(lastIndex+1);
 		}
 		///<summary>Returns the substring of a string from the last instance of a string. (Not Inclusive)</summary>
 		public static string FromLast(this string s, string c) {
 			int lastIndex = s.LastIndexOf(c);
-			if (lastIndex == -1) { return s; }
+			if (lastIndex == -1) { return ""; }
 			return s.Substring(lastIndex+c.Length);
 		}
 		
