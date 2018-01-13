@@ -53,6 +53,11 @@ namespace LevelUpper.FX {
 		public bool billboard = true;
 		public bool followCamera = true;
 
+		public static Func<Vector3> getUnitVectorUp = ()=> { return Vector3.up; };
+		public static Func<Vector3> getGravityUp = ()=> { return -Physics.gravity; };
+		public static Func<Vector3> getMainCameraUp = ()=> { return Camera.main.transform.up; };
+		public Func<Vector3> getUp = getGravityUp;
+
 		public float timeout;
 
 		public TextMeshPro baseText;
@@ -82,6 +87,8 @@ namespace LevelUpper.FX {
 		///<summary> Wrapthrough to settings object </summary>
 		public TextDisplaySettings.EaseMode easeMode { get { return settings.easeMode; } }
 
+		public Billboard bboard;
+
 		void Start() {
 
 			if (baseText == null) { baseText = Resources.Load<TextMeshPro>("Fancy3dText"); }
@@ -96,6 +103,9 @@ namespace LevelUpper.FX {
 			letters = new TextMeshPro[text.Length];
 			float spacer = baseSize * spacing;
 			float left = spacer * text.Length / -2f;
+			if (text.Length % 2 == 0) {
+				left += .5f * spacer;
+			}
 
 			for (int i = 0; i < text.Length; i++) {
 				letters[i] = Instantiate<TextMeshPro>(baseText);
@@ -104,9 +114,15 @@ namespace LevelUpper.FX {
 				var t = letters[i].transform;
 				t.SetParent(transform);
 				t.localPosition = new Vector3(left + spacer * i, 0, 0);
+				t.localScale = Vector3.one;
 			}
 
-
+			if (billboard) {
+				bboard = gameObject.AddComponent<Billboard>();
+				bboard.matchRotationMode = true;
+				bboard.flip = true;
+				bboard.doLate = true;
+			}
 		}
 
 		void Update() {
@@ -114,15 +130,21 @@ namespace LevelUpper.FX {
 			timeout += Time.deltaTime;
 			if (timeout >= lifetime) { Destroy(gameObject); return; }
 
-			if (billboard && Camera.main != null) { 
-				transform.LookAt(Camera.main.transform, -Physics.gravity);
+			/*
+			if (billboard && Camera.main != null) {
+				transform.LookAt(Camera.main.transform, getUp() );
 				transform.Rotate(0, 180, 0);
 			}
+			//*/
 			velocity += gravity * Time.deltaTime;
 			transform.position += transform.rotation * velocity * Time.deltaTime;
 
 			float spacer = baseSize * spacing;
 			float left = spacer * text.Length / -2f;
+			if (text.Length % 2 == 0) {
+				left += .5f * spacer;
+			}
+
 			for (int i = 0; i < letters.Length; i++) {
 				var letter = letters[i];
 				var t = letter.transform;
