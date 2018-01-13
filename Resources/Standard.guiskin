@@ -752,7 +752,7 @@ MonoBehaviour:
   m_horizontalScrollbar:
     m_Name: horizontalscrollbar
     m_Normal:
-      m_Background: {fileID: 2800000, guid: 45fb3573269636b43949c058de278a72, type: 3}
+      m_Background: {fileID: 2800000, guid: aa3ec8cd688c96f4ab342540fb0b864a, type: 3}
       m_ScaledBackgrounds: []
       m_TextColor: {r: 0, g: 0, b: 0, a: 1}
     m_Hover:
@@ -819,7 +819,7 @@ MonoBehaviour:
   m_horizontalScrollbarThumb:
     m_Name: horizontalscrollbarthumb
     m_Normal:
-      m_Background: {fileID: 2800000, guid: 5ba65819396160f4080c8baa2b6074ce, type: 3}
+      m_Background: {fileID: 2800000, guid: 78ba7496f61e63a4590bdd145afc250c, type: 3}
       m_ScaledBackgrounds: []
       m_TextColor: {r: 0, g: 0, b: 0, a: 1}
     m_Hover:
