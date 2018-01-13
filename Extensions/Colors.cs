@@ -55,6 +55,20 @@ namespace LevelUpper.Extensions {
 
 			return c;
 		}
+
+		/// <summary> Wraps the parse in a try...catch block and writes to <paramref name="col"/> Writes <see cref="Color.white"/> if parse fails. </summary>
+		/// <param name="s"> String to parse </param>
+		/// <param name="col"> Color to write to </param>
+		/// <returns> true if parse successful, false if parse fails. </returns>
+		public static bool TryParse(this string s, out Color col) {
+			try {
+				col = ParseHex(s);
+				return true;
+			} catch (System.Exception) { 
+				col = Color.white;
+				return false;
+			}
+		}
 		
 		#region color making functions
 		///These functions create a color by name with a given intensity.
