@@ -26,15 +26,15 @@ namespace LevelUpper.InputSystem {
 #if (UNITY_STANDALONE_WIN && !UNITY_EDITOR) || UNITY_EDITOR_WIN
 		public const string platformFolder = "Windows";
 #elif (UNITY_STANDALONE_OSX && !UNITY_EDITOR) || UNITY_EDITOR_OSX
-	public const string platformFolder = "OSX";
+		public const string platformFolder = "OSX";
 #elif (UNITY_STANDALONE_LINUX && !UNITY_EDITOR) || UNITY_EDITOR_LINUX
-	public const string platformFolder = "Linux";
+		public const string platformFolder = "Linux";
 #elif UNITY_ANDROID
-	public const string platformFolder = "Android";
+		public const string platformFolder = "Android";
 #elif UNITY_XBOXONE
-	public const string platformFolder = "XboxOne";
+		public const string platformFolder = "XboxOne";
 #else
-	public const string platformFolder = "";
+		public const string platformFolder = "";
 #endif
 
 		public static Joysticks instance;
@@ -52,16 +52,16 @@ namespace LevelUpper.InputSystem {
 		public static int numJoysticks { get { return joystickNames.Count; } }
 
 #if XtoJSON
-	private static JsonObject glyphData;
+		private static JsonObject glyphData;
 #endif
 
 #if UNITY_STANDALONE && LG_STEAM
-	public static Dictionary<string, ControllerAnalogActionHandle_t> analogActionHandles;
-	public static Dictionary<string, ControllerDigitalActionHandle_t> digitalActionHandles;
-	public static Dictionary<string, ControllerActionSetHandle_t> actionSetHandles;
-	public static Dictionary<EControllerActionOrigin, string> actionOriginGlyphNames;
+		public static Dictionary<string, ControllerAnalogActionHandle_t> analogActionHandles;
+		public static Dictionary<string, ControllerDigitalActionHandle_t> digitalActionHandles;
+		public static Dictionary<string, ControllerActionSetHandle_t> actionSetHandles;
+		public static Dictionary<EControllerActionOrigin, string> actionOriginGlyphNames;
 
-	protected ulong lastControlSet = ulong.MaxValue;
+		protected ulong lastControlSet = ulong.MaxValue;
 #endif
 
 		public virtual void Awake() {
@@ -71,13 +71,13 @@ namespace LevelUpper.InputSystem {
 			}
 			instance = this;
 #if UNITY_XBOXONE && !UNITY_EDITOR
-		joystickNames = new List<string>() { "","","","","","","","" };
-		controlNames.Add(LoadControlNamesForJoystick("Windows.Xbox.Input.Gamepad"));
-		for (uint i = 0; i < 8; ++i) {
-			if (XboxOneInput.IsGamepadActive(i + 1)) {
-				joystickNames[(int)i] = "Windows.Xbox.Input.Gamepad";
+			joystickNames = new List<string>() { "","","","","","","","" };
+			controlNames.Add(LoadControlNamesForJoystick("Windows.Xbox.Input.Gamepad"));
+			for (uint i = 0; i < 8; ++i) {
+				if (XboxOneInput.IsGamepadActive(i + 1)) {
+					joystickNames[(int)i] = "Windows.Xbox.Input.Gamepad";
+				}
 			}
-		}
 #else
 			joystickNames = Input.GetJoystickNames().ToList();
 			for (int i = 0; i < joystickNames.Count; ++i) {
@@ -90,83 +90,83 @@ namespace LevelUpper.InputSystem {
 #endif
 
 #if XtoJSON
-		JsonObject gameActions = Json.Parse(Resources.Load<TextAsset>("GameActions").text) as JsonObject;
-		glyphData = gameActions.Get<JsonObject>("GlyphSets");
+			JsonObject gameActions = Json.Parse(Resources.Load<TextAsset>("GameActions").text) as JsonObject;
+			glyphData = gameActions.Get<JsonObject>("GlyphSets");
 #endif
 
 #if UNITY_STANDALONE && LG_STEAM
 
-		actionSetHandles = new Dictionary<string, ControllerActionSetHandle_t>();
-		analogActionHandles = new Dictionary<string, ControllerAnalogActionHandle_t>();
-		digitalActionHandles = new Dictionary<string, ControllerDigitalActionHandle_t>();
+			actionSetHandles = new Dictionary<string, ControllerActionSetHandle_t>();
+			analogActionHandles = new Dictionary<string, ControllerAnalogActionHandle_t>();
+			digitalActionHandles = new Dictionary<string, ControllerDigitalActionHandle_t>();
 
 #if XtoJSON
-		JsonArray actionSets = gameActions.Get<JsonArray>("ActionSets");
-		JsonArray analogActions = gameActions.Get<JsonArray>("AnalogActions");
-		JsonArray digitalActions = gameActions.Get<JsonArray>("DigitalActions");
-		if (SteamManager.Initialized) {
-			if (actionSets != null) {
-				foreach (var st in actionSets) {
-					actionSetHandles.Add(st.stringVal, SteamController.GetActionSetHandle(st.stringVal));
+			JsonArray actionSets = gameActions.Get<JsonArray>("ActionSets");
+			JsonArray analogActions = gameActions.Get<JsonArray>("AnalogActions");
+			JsonArray digitalActions = gameActions.Get<JsonArray>("DigitalActions");
+			if (SteamManager.Initialized) {
+				if (actionSets != null) {
+					foreach (var st in actionSets) {
+						actionSetHandles.Add(st.stringVal, SteamController.GetActionSetHandle(st.stringVal));
+					}
+				}
+				if (analogActions != null) {
+					foreach (var st in analogActions) {
+						analogActionHandles.Add(st.stringVal, SteamController.GetAnalogActionHandle(st.stringVal));
+					}
+				}
+				if (digitalActions != null) {
+					foreach (var st in digitalActions) {
+						digitalActionHandles.Add(st.stringVal, SteamController.GetDigitalActionHandle(st.stringVal));
+					}
 				}
 			}
-			if (analogActions != null) {
-				foreach (var st in analogActions) {
-					analogActionHandles.Add(st.stringVal, SteamController.GetAnalogActionHandle(st.stringVal));
-				}
-			}
-			if (digitalActions != null) {
-				foreach (var st in digitalActions) {
-					digitalActionHandles.Add(st.stringVal, SteamController.GetDigitalActionHandle(st.stringVal));
-				}
-			}
-		}
 #endif
 
-		actionOriginGlyphNames = new Dictionary<EControllerActionOrigin, string>() {
-			{ EControllerActionOrigin.k_EControllerActionOrigin_A, "steam_button_a" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_B, "steam_button_b" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_X, "steam_button_x" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_Y, "steam_button_y" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_LeftBumper, "steam_shoulder_l" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_RightBumper, "steam_shoulder_r" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_LeftGrip, "steam_grip_l" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_RightGrip, "steam_grip_r" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_Start, "steam_button_start" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_Back, "steam_button_select" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_LeftPad_Touch, "steam_pad_l_touch" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_LeftPad_Swipe, "steam_pad_l_swipe" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_LeftPad_Click, "steam_pad_l_click" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_LeftPad_DPadNorth, "steam_pad_l_dpad_n" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_LeftPad_DPadSouth, "steam_pad_l_dpad_s" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_LeftPad_DPadWest, "steam_pad_l_dpad_w" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_LeftPad_DPadEast, "steam_pad_l_dpad_e" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_RightPad_Touch, "steam_pad_r_touch" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_RightPad_Swipe, "steam_pad_r_swipe" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_RightPad_Click, "steam_pad_r_click" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_RightPad_DPadNorth, "steam_pad_r_dpad_n" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_RightPad_DPadSouth, "steam_pad_r_dpad_s" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_RightPad_DPadWest, "steam_pad_r_dpad_w" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_RightPad_DPadEast, "steam_pad_r_dpad_e" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_LeftTrigger_Pull, "steam_trigger_l_pull" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_LeftTrigger_Click, "steam_trigger_l_click" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_RightTrigger_Pull, "steam_trigger_r_pull" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_RightTrigger_Click, "steam_trigger_r_click" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_LeftStick_Move, "steam_stick_move" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_LeftStick_Click, "steam_stick_click" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_LeftStick_DPadNorth, "steam_stick_dpad_n" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_LeftStick_DPadSouth, "steam_stick_dpad_s" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_LeftStick_DPadWest, "steam_stick_dpad_w" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_LeftStick_DPadEast, "steam_stick_dpad_e" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_Gyro_Move, "steam_gyro" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_Gyro_Pitch, "steam_gyro" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_Gyro_Yaw, "steam_gyro" },
-			{ EControllerActionOrigin.k_EControllerActionOrigin_Gyro_Roll, "steam_gyro" }
-		};
+			actionOriginGlyphNames = new Dictionary<EControllerActionOrigin, string>() {
+				{ EControllerActionOrigin.k_EControllerActionOrigin_A, "steam_button_a" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_B, "steam_button_b" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_X, "steam_button_x" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_Y, "steam_button_y" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_LeftBumper, "steam_shoulder_l" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_RightBumper, "steam_shoulder_r" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_LeftGrip, "steam_grip_l" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_RightGrip, "steam_grip_r" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_Start, "steam_button_start" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_Back, "steam_button_select" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_LeftPad_Touch, "steam_pad_l_touch" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_LeftPad_Swipe, "steam_pad_l_swipe" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_LeftPad_Click, "steam_pad_l_click" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_LeftPad_DPadNorth, "steam_pad_l_dpad_n" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_LeftPad_DPadSouth, "steam_pad_l_dpad_s" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_LeftPad_DPadWest, "steam_pad_l_dpad_w" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_LeftPad_DPadEast, "steam_pad_l_dpad_e" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_RightPad_Touch, "steam_pad_r_touch" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_RightPad_Swipe, "steam_pad_r_swipe" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_RightPad_Click, "steam_pad_r_click" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_RightPad_DPadNorth, "steam_pad_r_dpad_n" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_RightPad_DPadSouth, "steam_pad_r_dpad_s" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_RightPad_DPadWest, "steam_pad_r_dpad_w" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_RightPad_DPadEast, "steam_pad_r_dpad_e" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_LeftTrigger_Pull, "steam_trigger_l_pull" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_LeftTrigger_Click, "steam_trigger_l_click" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_RightTrigger_Pull, "steam_trigger_r_pull" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_RightTrigger_Click, "steam_trigger_r_click" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_LeftStick_Move, "steam_stick_move" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_LeftStick_Click, "steam_stick_click" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_LeftStick_DPadNorth, "steam_stick_dpad_n" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_LeftStick_DPadSouth, "steam_stick_dpad_s" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_LeftStick_DPadWest, "steam_stick_dpad_w" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_LeftStick_DPadEast, "steam_stick_dpad_e" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_Gyro_Move, "steam_gyro" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_Gyro_Pitch, "steam_gyro" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_Gyro_Yaw, "steam_gyro" },
+				{ EControllerActionOrigin.k_EControllerActionOrigin_Gyro_Roll, "steam_gyro" }
+			};
 #endif
 
 #if UNITY_XBOXONE
-		XboxOneInput.OnGamepadStateChange += OnGamepadStateChange;
+			XboxOneInput.OnGamepadStateChange += OnGamepadStateChange;
 #endif
 		}
 
@@ -423,200 +423,200 @@ namespace LevelUpper.InputSystem {
 		/// or if no glyph replacement is available, a human-readable string of the relevant controls.</returns>
 		public static string Glyph(string thing) {
 #if XtoJSON
-		if (glyphData != null) {
-			JsonObject glyph = glyphData.Get<JsonObject>(thing);
-			if (glyph != null) {
+			if (glyphData != null) {
+				JsonObject glyph = glyphData.Get<JsonObject>(thing);
+				if (glyph != null) {
 #if UNITY_STANDALONE && LG_STEAM
-				string steamAction = glyph.Get<string>("steam_action");
-				if (analogActionHandles.ContainsKey(steamAction)) {
-					string steamGlyph = GetSteamGlyph(GetCurrentActionSet(), analogActionHandles[steamAction]);
-					if (steamGlyph != null) { return steamGlyph; }
-				} else if (digitalActionHandles.ContainsKey(steamAction)) {
-					string steamGlyph = GetSteamGlyph(GetCurrentActionSet(), digitalActionHandles[steamAction]);
-					if (steamGlyph != null) { return steamGlyph; }
-				}
+					string steamAction = glyph.Get<string>("steam_action");
+					if (analogActionHandles.ContainsKey(steamAction)) {
+						string steamGlyph = GetSteamGlyph(GetCurrentActionSet(), analogActionHandles[steamAction]);
+						if (steamGlyph != null) { return steamGlyph; }
+					} else if (digitalActionHandles.ContainsKey(steamAction)) {
+						string steamGlyph = GetSteamGlyph(GetCurrentActionSet(), digitalActionHandles[steamAction]);
+						if (steamGlyph != null) { return steamGlyph; }
+					}
 #endif
-				string[] keys = glyph.Get<string[]>("keys");
-				string[] axes = glyph.Get<string[]>("axes");
-				string[] tokens = new string[keys.Length];
+					string[] keys = glyph.Get<string[]>("keys");
+					string[] axes = glyph.Get<string[]>("axes");
+					string[] tokens = new string[keys.Length];
 
-				int joystickNum = -1;
-				for (int i = 0; i < tokens.Length; ++i) {
-					tokens[i] = GetControlName(out joystickNum, DevConsole.GetBindForCommand(keys[i], axes[i]));
-				}
+					int joystickNum = -1;
+					for (int i = 0; i < tokens.Length; ++i) {
+						tokens[i] = GetControlName(out joystickNum, DevConsole.GetBindForCommand(keys[i], axes[i]));
+					}
 				
-				string oneThing = "";
-				if (tokens.Length == 0) {
-					return thing;
-				} else if (tokens.Length == 1) {
-					if (joystickNum > 0 && joystickNames.Count >= joystickNum) {
-						if (controlNames[joystickNum - 1] != null && controlNames[joystickNum - 1].ContainsKey("Sheet")) {
-							return "[" + controlNames[joystickNum - 1]["Sheet"] + "_" + tokens[0].RemoveAll(' ') + "]";
+					string oneThing = "";
+					if (tokens.Length == 0) {
+						return thing;
+					} else if (tokens.Length == 1) {
+						if (joystickNum > 0 && joystickNames.Count >= joystickNum) {
+							if (controlNames[joystickNum - 1] != null && controlNames[joystickNum - 1].ContainsKey("Sheet")) {
+								return "[" + controlNames[joystickNum - 1]["Sheet"] + "_" + tokens[0].RemoveAll(' ') + "]";
+							} else {
+								return Localization.Localize(tokens[0]);
+							}
 						} else {
 							return Localization.Localize(tokens[0]);
 						}
 					} else {
-						return Localization.Localize(tokens[0]);
-					}
-				} else {
-					if (tokens[0].LastIndexOf(' ') >= 0) {
-						oneThing = tokens[0].Substring(0, tokens[0].LastIndexOf(' '));
-					} else if (tokens[0].StartsWith("MouseAxis")) {
-						oneThing = "MouseAxis";
-					}
-				}
-
-				StringBuilder output = new StringBuilder();
-				for (int i = 0; i < tokens.Length; ++i) {
-					if (oneThing.Length > 0) {
-						if(!tokens[i].StartsWith(oneThing) || (oneThing != "MouseAxis" && !(tokens[i].EndsWith("Left") || tokens[i].EndsWith("Right") || tokens[i].EndsWith("Up") || tokens[i].EndsWith("Down")))) {
-							oneThing = "";
+						if (tokens[0].LastIndexOf(' ') >= 0) {
+							oneThing = tokens[0].Substring(0, tokens[0].LastIndexOf(' '));
+						} else if (tokens[0].StartsWith("MouseAxis")) {
+							oneThing = "MouseAxis";
 						}
 					}
-					output.Append(Localization.Localize(tokens[i]));
-					if (i < tokens.Length - 1) {
-						output.Append(", ");
+
+					StringBuilder output = new StringBuilder();
+					for (int i = 0; i < tokens.Length; ++i) {
+						if (oneThing.Length > 0) {
+							if(!tokens[i].StartsWith(oneThing) || (oneThing != "MouseAxis" && !(tokens[i].EndsWith("Left") || tokens[i].EndsWith("Right") || tokens[i].EndsWith("Up") || tokens[i].EndsWith("Down")))) {
+								oneThing = "";
+							}
+						}
+						output.Append(Localization.Localize(tokens[i]));
+						if (i < tokens.Length - 1) {
+							output.Append(", ");
+						}
+						if (i == tokens.Length - 2) {
+							output.Append(Localization.Localize("and"))
+							.Append(' ');
+						}
 					}
-					if (i == tokens.Length - 2) {
-						output.Append(Localization.Localize("and"))
-						.Append(' ');
-					}
-				}
-				if (oneThing.Length > 0) {
-					if (oneThing == "MouseAxis") {
-						return Localization.Localize("The Mouse");
-					} else {
-						if (joystickNum > 0 && joystickNames.Count >= joystickNum) {
-							if (controlNames[joystickNum - 1] != null && controlNames[joystickNum - 1].ContainsKey("Sheet")) {
-								return "[" + controlNames[joystickNum - 1]["Sheet"] + "_" + oneThing.RemoveAll(' ') + "]";
+					if (oneThing.Length > 0) {
+						if (oneThing == "MouseAxis") {
+							return Localization.Localize("The Mouse");
+						} else {
+							if (joystickNum > 0 && joystickNames.Count >= joystickNum) {
+								if (controlNames[joystickNum - 1] != null && controlNames[joystickNum - 1].ContainsKey("Sheet")) {
+									return "[" + controlNames[joystickNum - 1]["Sheet"] + "_" + oneThing.RemoveAll(' ') + "]";
+								} else {
+									return Localization.Localize(oneThing);
+								}
 							} else {
 								return Localization.Localize(oneThing);
 							}
-						} else {
-							return Localization.Localize(oneThing);
 						}
 					}
-				}
-				return output.ToString();
-			} else {
-				int joystickNum = -1;
-				string token = GetControlName(out joystickNum, thing);
+					return output.ToString();
+				} else {
+					int joystickNum = -1;
+					string token = GetControlName(out joystickNum, thing);
 				
-				if (joystickNum > 0 && joystickNames.Count >= joystickNum) {
-					if (controlNames[joystickNum - 1] != null && controlNames[joystickNum - 1].ContainsKey("Sheet")) {
-						return "[" + controlNames[joystickNum - 1]["Sheet"] + "_" + token.RemoveAll(' ') + "]";
+					if (joystickNum > 0 && joystickNames.Count >= joystickNum) {
+						if (controlNames[joystickNum - 1] != null && controlNames[joystickNum - 1].ContainsKey("Sheet")) {
+							return "[" + controlNames[joystickNum - 1]["Sheet"] + "_" + token.RemoveAll(' ') + "]";
+						} else {
+							return Localization.Localize(token);
+						}
 					} else {
 						return Localization.Localize(token);
 					}
-				} else {
-					return Localization.Localize(token);
 				}
 			}
-		}
 #endif
 			return thing;
 		}
 
 		public virtual void LateUpdate() {
 #if UNITY_STANDALONE && LG_STEAM
-		lastControlSet = GetCurrentActionSet().m_ControllerActionSetHandle;
+			lastControlSet = GetCurrentActionSet().m_ControllerActionSetHandle;
 #endif
 		}
 
 #if UNITY_STANDALONE && LG_STEAM
-	public static void SetCurrentActionSet(string name) {
-		if (!SteamManager.Initialized) {
-			return;
-		}
-		if (actionSetHandles.ContainsKey(name)) {
-			ControllerHandle_t handle;
-			if (SteamControllerConnected(out handle)) {
-				SteamController.ActivateActionSet(handle, actionSetHandles[name]);
+		public static void SetCurrentActionSet(string name) {
+			if (!SteamManager.Initialized) {
+				return;
 			}
-		} else {
-			Debug.LogErrorFormat("No Steam Controller action set defined with name {0}", name);
+			if (actionSetHandles.ContainsKey(name)) {
+				ControllerHandle_t handle;
+				if (SteamControllerConnected(out handle)) {
+					SteamController.ActivateActionSet(handle, actionSetHandles[name]);
+				}
+			} else {
+				Debug.LogErrorFormat("No Steam Controller action set defined with name {0}", name);
+			}
 		}
-	}
 	
-	public static ControllerActionSetHandle_t GetCurrentActionSet() {
-		ControllerHandle_t handle;
-		if (SteamManager.Initialized && SteamControllerConnected(out handle)) {
-			return SteamController.GetCurrentActionSet(handle);
-		}
-		return default(ControllerActionSetHandle_t);
-	}
-
-	public static string GetSteamGlyph(string action) {
-		if (analogActionHandles.ContainsKey(action)) {
-			return GetSteamGlyph(GetCurrentActionSet(), analogActionHandles[action]);
-		} else if (digitalActionHandles.ContainsKey(action)) {
-			return GetSteamGlyph(GetCurrentActionSet(), digitalActionHandles[action]);
-		}
-		return null;
-	}
-
-	public static string GetSteamGlyph(ControllerActionSetHandle_t set, ControllerDigitalActionHandle_t action) {
-		ControllerHandle_t controllerHandle;
-		if (SteamControllerConnected(out controllerHandle)) {
-			EControllerActionOrigin[] origins = new EControllerActionOrigin[Constants.STEAM_CONTROLLER_MAX_ORIGINS];
-			if (SteamController.GetDigitalActionOrigins(controllerHandle, set, action, origins) > 0) {
-				return "[" + actionOriginGlyphNames[origins[0]] + "]";
+		public static ControllerActionSetHandle_t GetCurrentActionSet() {
+			ControllerHandle_t handle;
+			if (SteamManager.Initialized && SteamControllerConnected(out handle)) {
+				return SteamController.GetCurrentActionSet(handle);
 			}
+			return default(ControllerActionSetHandle_t);
 		}
-		return null;
-	}
 
-	public static string GetSteamGlyph(ControllerActionSetHandle_t set, ControllerAnalogActionHandle_t action) {
-		ControllerHandle_t controllerHandle;
-		if (SteamControllerConnected(out controllerHandle)) {
-			EControllerActionOrigin[] origins = new EControllerActionOrigin[Constants.STEAM_CONTROLLER_MAX_ORIGINS];
-			if (SteamController.GetAnalogActionOrigins(controllerHandle, set, action, origins) > 0) {
-				return "[" + actionOriginGlyphNames[origins[0]] + "]";
+		public static string GetSteamGlyph(string action) {
+			if (analogActionHandles.ContainsKey(action)) {
+				return GetSteamGlyph(GetCurrentActionSet(), analogActionHandles[action]);
+			} else if (digitalActionHandles.ContainsKey(action)) {
+				return GetSteamGlyph(GetCurrentActionSet(), digitalActionHandles[action]);
 			}
+			return null;
 		}
-		return null;
-	}
 
-	public static bool SteamControllerConnected(out ControllerHandle_t handle) {
-		if (SteamManager.Initialized) {
-			ControllerHandle_t[] controllers = new ControllerHandle_t[Constants.STEAM_CONTROLLER_MAX_COUNT];
-			int numControllers = SteamController.GetConnectedControllers(controllers);
-			if (numControllers > 0) {
-				handle = controllers[0];
-				return true;
+		public static string GetSteamGlyph(ControllerActionSetHandle_t set, ControllerDigitalActionHandle_t action) {
+			ControllerHandle_t controllerHandle;
+			if (SteamControllerConnected(out controllerHandle)) {
+				EControllerActionOrigin[] origins = new EControllerActionOrigin[Constants.STEAM_CONTROLLER_MAX_ORIGINS];
+				if (SteamController.GetDigitalActionOrigins(controllerHandle, set, action, origins) > 0) {
+					return "[" + actionOriginGlyphNames[origins[0]] + "]";
+				}
 			}
+			return null;
 		}
-		handle = default(ControllerHandle_t);
-		return false;
-	}
 
-	public static bool SteamControllerConnected() {
-		if (SteamManager.Initialized) {
-			ControllerHandle_t[] controllers = new ControllerHandle_t[Constants.STEAM_CONTROLLER_MAX_COUNT];
-			int numControllers = SteamController.GetConnectedControllers(controllers);
-			if (numControllers > 0) {
-				return true;
+		public static string GetSteamGlyph(ControllerActionSetHandle_t set, ControllerAnalogActionHandle_t action) {
+			ControllerHandle_t controllerHandle;
+			if (SteamControllerConnected(out controllerHandle)) {
+				EControllerActionOrigin[] origins = new EControllerActionOrigin[Constants.STEAM_CONTROLLER_MAX_ORIGINS];
+				if (SteamController.GetAnalogActionOrigins(controllerHandle, set, action, origins) > 0) {
+					return "[" + actionOriginGlyphNames[origins[0]] + "]";
+				}
 			}
+			return null;
 		}
-		return false;
-	}
+
+		public static bool SteamControllerConnected(out ControllerHandle_t handle) {
+			if (SteamManager.Initialized) {
+				ControllerHandle_t[] controllers = new ControllerHandle_t[Constants.STEAM_CONTROLLER_MAX_COUNT];
+				int numControllers = SteamController.GetConnectedControllers(controllers);
+				if (numControllers > 0) {
+					handle = controllers[0];
+					return true;
+				}
+			}
+			handle = default(ControllerHandle_t);
+			return false;
+		}
+
+		public static bool SteamControllerConnected() {
+			if (SteamManager.Initialized) {
+				ControllerHandle_t[] controllers = new ControllerHandle_t[Constants.STEAM_CONTROLLER_MAX_COUNT];
+				int numControllers = SteamController.GetConnectedControllers(controllers);
+				if (numControllers > 0) {
+					return true;
+				}
+			}
+			return false;
+		}
 #endif
 
 #if UNITY_XBOXONE
-	public void OnGamepadStateChange(uint index, bool isConnected) {
-		// Hardcode these to report the identifier for a controller on the Xbone, since this is Xbox specific code anyway.
-		if (isConnected) {
-			joystickNames[(int)index] = "Windows.Xbox.Input.Gamepad";
-			if (OnJoystickConnected != null) {
-				OnJoystickConnected((int)index, "Windows.Xbox.Input.Gamepad");
-			}
-		} else {
-			joystickNames[(int)index] = "";
-			if (OnJoystickDisconnected != null) {
-				OnJoystickDisconnected((int)index, "Windows.Xbox.Input.Gamepad");
+		public void OnGamepadStateChange(uint index, bool isConnected) {
+			// Hardcode these to report the identifier for a controller on the Xbone, since this is Xbox specific code anyway.
+			if (isConnected) {
+				joystickNames[(int)index] = "Windows.Xbox.Input.Gamepad";
+				if (OnJoystickConnected != null) {
+					OnJoystickConnected((int)index, "Windows.Xbox.Input.Gamepad");
+				}
+			} else {
+				joystickNames[(int)index] = "";
+				if (OnJoystickDisconnected != null) {
+					OnJoystickDisconnected((int)index, "Windows.Xbox.Input.Gamepad");
+				}
 			}
 		}
-	}
 #endif
 
 	}

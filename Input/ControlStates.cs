@@ -98,8 +98,6 @@ namespace LevelUpper.InputSystem {
 		/// 
 		/// If a bool is requested, false is returned unless:
 		/// the data is 'true', or a number with an absolute value over the deadzone.
-		/// 
-		/// 
 		/// </summary>
 		public static T Get<T>(string thing) { return GetInternal<T>(thing, values); }
 
