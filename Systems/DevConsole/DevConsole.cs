@@ -12,6 +12,7 @@ using LevelUpper.Extensions.Reflection;
 using UnityEditor;
 #endif
 #if UNITY_XBOXONE
+using LevelUpper.Consoles.XBONE;
 using Storage;
 using Users;
 #endif
@@ -96,8 +97,16 @@ namespace LevelUpper {
 		/// <summary>User-definable autoexec path, pointing to a script that will automatically execute when the game is run.</summary>
 		public static string autoexecPath = "";
 
+		private static ConsoleWindow _window;
 		/// <summary>The window being used to interact with the console systems.</summary>
-		private static ConsoleWindow window;
+		private static ConsoleWindow window {
+			get {
+				if (_window == null) {
+					_window = new ConsoleWindow();
+				}
+				return _window;
+			}
+		}
 
 		/// <summary>Run as soon as the Behaviour is created.</summary>
 		protected void Awake() {
@@ -153,7 +162,6 @@ namespace LevelUpper {
 			// before the first OnGUI. Let's reload all the things.
 			if (window == null) {
 				SetUpInitialData();
-				InstantiateWindowObject();
 				LoadConfigFile();
 			}
 			
@@ -250,13 +258,12 @@ namespace LevelUpper {
 		protected void OnGUI() {
 			if (window == null) {
 				SetUpInitialData();
-				InstantiateWindowObject();
 				LoadConfigFile();
 			}
 
 			if (window.open) {
 				GUI.depth = -2000000000;
-				window.Draw();
+				window.OnGUI();
 			} else {
 				//ConsoleWindow.focusTheTextField = true;
 			}
@@ -857,9 +864,9 @@ namespace LevelUpper {
 		/// <param name="key">Key to bind</param>
 		/// <param name="thing">ControlState to set</param>
 		public static void BindButton(string key, string thing) {
-			Alias("+" + thing, "ControlStates.OrThisFrame " + thing + " true");
-			Alias("-" + thing, "ControlStates.OrThisFrame " + thing + " false");
-			Bind(key, "+"+thing);
+			Alias("+" + thing, "LevelUpper.InputSystem.ControlStates.OrThisFrame " + thing + " true");
+			Alias("-" + thing, "LevelUpper.InputSystem.ControlStates.OrThisFrame " + thing + " false");
+			Bind(key, "+" + thing);
 		}
 
 		/// <summary>
@@ -1362,20 +1369,6 @@ namespace LevelUpper {
 	#endif
 
 		/// <summary>
-		/// Creates a new Window to use as the interface for the console.
-		/// </summary>
-		private void InstantiateWindowObject() {
-			window = new ConsoleWindow();
-				/*
-				.Named("Developer Console")
-				.Resizable()
-				.Closed()
-				.Area(Screen.all.MiddleCenter(0.7f, 0.8f).Move(0.1f, 0.0f));//*/
-			//window.textWindow = initialText.ParseNewlines();
-			//window.depth = -2000000000;
-		}
-
-		/// <summary>
 		/// Initializes the instance values to good defaults. These may be overwritten when the config file is loaded.
 		/// </summary>
 		public void SetUpInitialData() {
@@ -1554,16 +1547,15 @@ namespace LevelUpper {
 		public bool open = false;
 
 		public void Draw() { }
-		public void Window() {
-			/*
-			GUILayout.BeginVertical(); {
+		public void OnGUI() {
+			GUILayout.BeginVertical(GUILayout.Width(Screen.width)); {
 				scrollPos = GUILayout.BeginScrollView(scrollPos, GUIStyle.none, GUI.skin.verticalScrollbar); {
 					if (textWindow.Length > 16382) {
 						textWindow = textWindow.Substring(textWindow.Length - 16382, 16382);
 					}
 					Color backup = GUI.color;
 					GUI.color = DevConsole.color;
-					Label(textWindow);
+					GUILayout.Label(textWindow);
 					GUI.color = backup;
 				} GUILayout.EndScrollView();
 				GUILayout.BeginHorizontal(); {
@@ -1595,7 +1587,6 @@ namespace LevelUpper {
 			if (focusTheTextField && Event.current.type == EventType.Repaint) {
 				GUI.FocusControl("ConsoleInput");
 			}
-			//*/
 		}
 
 		public void TryExecute(string cmd) {

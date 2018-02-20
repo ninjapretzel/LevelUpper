@@ -2,16 +2,18 @@
 //#define DEBUGENABLE
 #endif
 
-#if UNITY_XBOXONE && !UNITY_EDITOR || DEBUGENABLE
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_XBOXONE
 using Storage;
 using Users;
+#endif
 
+#if UNITY_XBOXONE
 namespace LevelUpper.Consoles.XBONE {
 
 	public static class ConnectedStorageWrapper {
-
+#if !UNITY_EDITOR || DEBUGENABLE
 		public delegate void OnSaveDataRetrievedCallback(User user, string name, byte[] data);
 		public delegate void OnSaveDataDidNotExistCallback(User user, string name);
 		public delegate void OnConnectedStorageReadyCallback(int userId);
@@ -94,7 +96,7 @@ namespace LevelUpper.Consoles.XBONE {
 			currentlyLoadingMap = null;
 			LoadNextDataInQueue();
 		}
+#endif
 	}
 }
 #endif
-	

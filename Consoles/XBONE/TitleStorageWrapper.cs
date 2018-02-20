@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System;
+using LevelUpper.Compression;
 #if UNITY_XBOXONE
 using DataPlatform;
 using System.Text;
