@@ -2,12 +2,14 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-
+using System.Runtime.CompilerServices;
 
 namespace LevelUpper.Extensions {
 	public static class EnumExtensions {
 
-		// This is in the .NET Framework but hasn't made its way to the version of Mono used by Unity yet.
+#if NET_4_6
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
 		public static bool TryParse<TEnum>(string value, out TEnum result) where TEnum : struct {
 #if NET_4_6
 			return Enum.TryParse<TEnum>(value, out result);
@@ -26,6 +28,9 @@ namespace LevelUpper.Extensions {
 #endif
 		}
 
+#if NET_4_6
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
 		public static bool TryParse<TEnum>(string value, bool ignoreCase, out TEnum result) where TEnum : struct {
 #if NET_4_6
 			return Enum.TryParse<TEnum>(value, ignoreCase, out result);
