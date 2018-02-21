@@ -31,7 +31,7 @@ namespace LevelUpper.Animation {
 		/// <summary> Current value of the oscillator </summary>
 		public float value { get; private set; }
 		/// <summary> Direction (up/down) </summary>
-		private bool up = false;
+		public bool up { get; private set; }
 		
 		public Oscillator() {
 			minVal = 0.0f;
@@ -85,6 +85,35 @@ namespace LevelUpper.Animation {
 				p = (1.0f + Mathf.Cos(p * Mathf.PI)) / 2.0f;
 			}
 			
+			value = (minVal + p * (maxVal - minVal));
+			return value;
+		}
+
+		/// <summary> Update the oscillator with a custom deltaTime and get the next value. </summary>
+		public float Update(float deltaTime) {
+			if (up) {
+				curTime += deltaTime;
+				if (curTime > maxTime) {
+					up = !up;
+					curTime = maxTime * 2 - curTime;
+				}
+			} else {
+				curTime -= deltaTime;
+				if (curTime < 0) {
+					up = !up;
+					curTime = -curTime;
+				}
+			}
+
+			float p = curTime / maxTime;
+			if (mode == Mode.Square) {
+				p *= p;
+			} else if (mode == Mode.Sin) {
+				p = Mathf.Sin(p * Mathf.PI);
+			} else if (mode == Mode.Cos) {
+				p = (1.0f + Mathf.Cos(p * Mathf.PI)) / 2.0f;
+			}
+
 			value = (minVal + p * (maxVal - minVal));
 			return value;
 		}
