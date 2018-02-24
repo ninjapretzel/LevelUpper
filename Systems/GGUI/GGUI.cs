@@ -13,6 +13,8 @@ public class GGUIControl {
 	/// <summary> Empty object[] to reuse </summary>
 	static readonly object[] empty = new object[0];
 
+	static readonly Rect DEFAULT_TOOLTIP_SIZE = new Rect(0,0,.25f,.25f);
+
 	/// <summary> Empty Constructor. For this type, it's expected to use the initializer. </summary>
 	/// <remarks> Does grab some override information from GGUI, such as color/textColor/fontSize. </remarks>
 	public GGUIControl() { 
@@ -25,6 +27,9 @@ public class GGUIControl {
 
 	/// <summary> Reference to the RectTransform of the created transform, once it exists. </summary>
 	public RectTransform liveObject = null;
+	
+	/// <summary> Transform to anchor to. </summary>
+	public Transform anchorTransform = null;
 
 	/// <summary> Optional position in space relative to parent </summary>
 	public Rect? position = null;
@@ -71,6 +76,12 @@ public class GGUIControl {
 	/// <summary> Holds a delegate that will be called every frame to update a live control </summary>
 	public Action<RectTransform> __Live = null;
 
+	/// <summary> Holds a delegate that is called to render the tooltip for the item, when hover'd. Returns a Rect containing its desired size. </summary>
+	public Func<Rect> __RenderTooltip = null;
+
+	/// <summary> Flag to ignore the mouse hovering over this control. </summary>
+	public bool ignoreHover = false;
+
 	/// <summary> Style to use to style the control </summary>
 	public GGUIStyle style = null;
 
@@ -87,18 +98,28 @@ public class GGUIControl {
 
 	/// <summary> Hooks up a callback to be called when the control is ready. </summary>
 	/// <param name="callback"> Callback on the GGUIControl once it is ready. </param>
-	/// /// <returns> The GGUIControl that the function was called on </returns>
+	/// <returns> The GGUIControl that the function was called on </returns>
 	public GGUIControl OnReady(Action<GGUIControl> callback) { __OnReady += callback; return this; }
 
 	/// <summary> Hooks up a callback to be called every time the control is enabled. </summary>
 	/// <param name="callback"> Callback on the RectTransform of the control. </param>
-	/// /// <returns> The GGUIControl that the function was called on </returns>
+	/// <returns> The GGUIControl that the function was called on </returns>
 	public GGUIControl OnEnable(Action<RectTransform> callback) { __OnEnable += callback; return this; }
 
 	/// <summary> Hooks up a callback to be called every frame the control exists. </summary>
 	/// <param name="callback"> Callback on the RectTransform of the control. </param>
-	/// /// <returns> The GGUIControl that the function was called on </returns>
+	/// <returns> The GGUIControl that the function was called on </returns>
 	public GGUIControl Update(Action<RectTransform> callback) { __Live += callback; return this; }
+
+	/// <summary> Hooks up a callback to be called when the tooltip is rendered. </summary>
+	/// <param name="callback"> Callback to render the tooltip </param>
+	/// <returns> The GGUIControl that the function was called on </returns>
+	public GGUIControl Tooltip(Action callback) { __RenderTooltip = ()=>{callback(); return DEFAULT_TOOLTIP_SIZE; }; return this; }
+
+	/// <summary> Hooks up a callback to be called when the tooltip is rendered. </summary>
+	/// <param name="callback"> Callback to render the tooltip </param>
+	/// <returns> The GGUIControl that the function was called on </returns>
+	public GGUIControl Tooltip(Func<Rect> callback) { __RenderTooltip = callback; return this; }
 
 	/// <summary> Sends a click event to a button, if it exists. </summary>
 	public void Clicked() { liveObject?.GetComponent<Button>()?.onClick.Invoke(); }
@@ -154,6 +175,14 @@ public class GGUISkin : Dictionary<string, GGUIStyle> {
 			}
 
 		}
+	}
+
+	public GGUISkin Duplicate() {
+		var copy = new GGUISkin(ScriptableObject.Instantiate(defaultStyle));
+
+		foreach (var pair in this) { copy[pair.Key] = ScriptableObject.Instantiate(pair.Value); }
+
+		return copy;
 	}
 }
 
@@ -293,7 +322,7 @@ public static partial class GGUI {
 
 	public static void LoadSkin(string resourcesPathToSkin) {
 		GGUISkinData data = Resources.Load<GGUISkinData>(resourcesPathToSkin);
-		skin = (data != null) ? data.skin : defaultSkin;
+		skin = ((data != null) ? data.skin : defaultSkin);//.Duplicate(); // Uncomment this if skins clobber eachother...
 		skin.name = data.name;
 		if (skin.defaultStyle != null) {
 			skin.defaultStyle.name = data.name + "_default";
@@ -348,10 +377,25 @@ public static partial class GGUI {
 		get { 
 			if (_canvas == null) { 
 				_canvas = GameObject.Find("Canvas");
+				GameObject.DontDestroyOnLoad(_canvas);
 				if (_canvas == null) { return null; }
 			}	
 			return _canvas.GetComponent<RectTransform>();
 		} 
+	}
+
+	/// <summary> Reference to the extant worldspace canvas... </summary>
+	private static GameObject _worldCanvas = null;
+	/// <summary> Accessor that attempts to get a worldspace canvas if it exists. </summary>
+	public static RectTransform worldCanvas {
+		get {
+			if (_worldCanvas == null) {
+				_worldCanvas = GameObject.Find("WorldCanvas");
+				GameObject.DontDestroyOnLoad(_worldCanvas);
+				if (_worldCanvas == null) { return null; }
+			}
+			return _worldCanvas.GetComponent<RectTransform>();
+		}
 	}
 
 	/// <summary> Extension method to make it easier to add components with just a component reference. Why isn't this standard? </summary>
@@ -360,29 +404,44 @@ public static partial class GGUI {
 	/// <returns> Newly created component </returns>
 	private static T AddComponent<T>(this Component c) where T : Component { return (c == null) ? null : c.gameObject.AddComponent<T>(); }
 	
-	/// <summary> Render a GUI from the results of calling a given function </summary>
-	/// <param name="guifunc"> Function to call to render the GUI </param>
-	/// <returns> RectTransform of root of the resultant UGUI controls </returns>
-	public static RectTransform Render(Action guifunc) {
-		string rootName = guifunc.Method.Name;
+	/// <summary> Resets render state, and passes over the <paramref name="guifunc"/> setting up all GGUI Controls </summary>
+	/// <param name="guifunc"> Function being called to render GUI </param>
+	/// <returns></returns>
+	private static GGUIControl PreRender(Action guifunc, Rect? pos = null, Transform anchor = null) {
+		string rootName = "func_" + guifunc.Method.Name;
 		// TBD: More reset logic?
+		// LOOK HERE FIRST BEFORE DUPLICATING SKINS WHEN LOADING THEM IF THEY DON'T LOAD PROPERLY
 		color = Color.white;
 		textColor = Color.white;
 		fontSize = -1;
+		alignment = null;
+		anchorLegacy = null;
 		skin = defaultSkin;
 
+		// Reset history state. 
 		history.Clear();
-		var root = new GGUIControl() { position = unitRect, kind = rootName };
-		history.Push(root);
+		Rect? position = pos;
+		if (position == null) { position = unitRect; }
 
+		var root = new GGUIControl() { anchorTransform = anchor, position = position, kind = rootName };
+		history.Push(root);
+		// Call the guifunc, which sets up all controls
 		guifunc();
 		// Clean up last control...
 		Next();
 		
+		return root;
+	}
+
+	/// <summary> Render a GUI from the results of calling a given function </summary>
+	/// <param name="guifunc"> Function to call to render the GUI </param>
+	/// <returns> RectTransform of root of the resultant UGUI controls </returns>
+	public static RectTransform Render(Action guifunc, Rect? pos = null, Transform anchor = null) {
+		var root = PreRender(guifunc, pos, anchor);
 		// Actually do all rendering
 		return Render(root, canvas);
 	}
-
+	
 	/// <summary> Render a single UGUI control (and its children, recusively), and attach it to a given parent. </summary>
 	/// <param name="c"> Control data to use to render the control </param>
 	/// <param name="parent"> Parent RectTransform to attach the created control to. </param>
@@ -461,11 +520,48 @@ public static partial class GGUI {
 		if (c.kind == "VerticalScrollView") { MakeItAVerticalScrollView(c, obj); attachTo = obj.Find("Viewport/Content") as RectTransform; }
 
 		// Position is done last because some components like to mess with it.
-		var pos = (c.position == null) ? unitRect : c.position.Value;
-		var off = (c.offsets == null) ? zeroRect : c.offsets.Value;
-		Reposition(obj, pos, off);
+		Reposition(c);
 
 		return attachTo;
+	}
+
+	/// <summary> Apply appropriate repositioning of the RectTransform to the given GGUIControl </summary>
+	/// <param name="c"></param>
+	public static void Reposition(this GGUIControl c) {
+		if (c.liveObject != null) {
+			var obj = c.liveObject;
+			var pos = (c.position == null) ? unitRect : c.position.Value;
+			if (c.anchorTransform == null) {
+				var off = (c.offsets == null) ? zeroRect : c.offsets.Value;
+				Reposition(obj, pos, off);
+			} else {
+				Reposition(obj, pos, c.anchorTransform.position);
+			}
+		}
+	}
+
+	/// <summary> Anchors <paramref name="obj"/> to the 2d point at <paramref name="wpos"/>, with normalized size and offset <paramref name="size"/>. </summary>
+	/// <param name="obj"> RectTransform of object to reposition </param>
+	/// <param name="size"> Screen normalized Size and offset for placement </param>
+	/// <param name="wpos"> world position to anchor to </param>
+	public static void Reposition(RectTransform obj, Rect size, Vector3 wpos) {
+		Vector3 screenPos = Camera.main.WorldToViewportPoint(wpos);
+		Vector2 point = new Vector2(screenPos.x, screenPos.y);
+		obj.anchorMax = point;
+		obj.anchorMin = point;
+
+		size.x *= Screen.height;
+		size.y *= Screen.height;
+		size.width *= Screen.height;
+		size.height *= Screen.height;
+		float halfWidth = size.width / 2f;
+		float halfHeight = size.height / 2f;
+		float xmin = size.x - halfWidth;
+		float xmax = size.x + halfWidth;
+		float ymin = size.y - halfHeight;
+		float ymax = size.y + halfHeight;
+		obj.offsetMin = new Vector2(xmin, ymin);
+		obj.offsetMax = new Vector2(xmax, ymax);
 	}
 
 	/// <summary> Repositions a control relative to its parent, via anchors. </summary>

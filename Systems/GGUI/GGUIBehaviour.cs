@@ -8,6 +8,9 @@ using UnityEngine.UI;
 
 public class GGUIBehaviour : MonoBehaviour {
 
+	public static readonly Rect unit = new Rect(0, 0, 1, 1);
+
+
 	public RectTransform gui = null;
 	public bool rebuild = false;
 
@@ -18,6 +21,8 @@ public class GGUIBehaviour : MonoBehaviour {
 		}
 
 		BuildGUI();
+
+		if (gui != null) { gui.gameObject.SetActive(true); }
 
 	}
 
@@ -46,14 +51,13 @@ public class GGUIBehaviour : MonoBehaviour {
 	private void BuildGUI() {
 
 		if (gui == null) {
-
-			gui = Render(() => {
-				RenderGUI();
-			});
-
+			gui = Render(this.RenderGUI);
 		}
-
-		gui.SetParent(canvas);
+		
+		if (gui != null) {
+			gui.gameObject.name = GetType().Name + "." + gui.gameObject.name;
+			gui.SetParent(canvas);
+		}
 
 	}
 
