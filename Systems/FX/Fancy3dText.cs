@@ -64,6 +64,9 @@ namespace LevelUpper.FX {
 
 		public TextMeshPro[] letters;
 
+		/// <summary> Scale multiplier for this instance.</summary>
+		public float scale = 1f;
+
 		///<summary> Wrapthrough to settings object </summary>
 		public float lifetime { get { return settings.lifetime; } }
 		///<summary> Wrapthrough to settings object </summary>
@@ -139,7 +142,7 @@ namespace LevelUpper.FX {
 			velocity += gravity * Time.deltaTime;
 			transform.position += transform.rotation * velocity * Time.deltaTime;
 
-			float spacer = baseSize * spacing;
+			float spacer = baseSize * spacing * scale;
 			float left = spacer * text.Length / -2f;
 			if (text.Length % 2 == 0) {
 				left += .5f * spacer;
@@ -165,7 +168,7 @@ namespace LevelUpper.FX {
 					alpha = (lifetime - timeout) / fadeTime;
 				}
 				letter.color = color.Alpha(alpha);
-				letter.fontSize = Mathf.Lerp(baseSize * sizeScale, baseSize, fadePosition);
+				letter.fontSize = scale * Mathf.Lerp(baseSize * sizeScale, baseSize, fadePosition);
 
 			}
 
