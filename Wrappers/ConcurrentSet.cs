@@ -23,6 +23,9 @@ public class ConcurrentSet<T> : IEnumerable<T> {
 		content = new ConcurrentDictionary<T, int>();
 	}
 
+	/// <summary> Wrap through to the content IsEmpty </summary>
+	public bool IsEmpty { get { return content.IsEmpty; } }
+
 	/// <summary> See if the Set contains <paramref name="val"/> </summary>
 	/// <param name="val"> Value to check for </param>
 	/// <returns> true if <paramref name="val"/> was in the set when it peeked, false otherwise. </returns>
