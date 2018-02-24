@@ -1,13 +1,102 @@
 using UnityEngine;
 using System.Text;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Collections;
 using System.Collections.Generic;
 using LevelUpper.Extensions;
+using System.Runtime.CompilerServices;
 
 namespace LevelUpper.Markdown {
 	public static class Replacements {
-		
+
+		/// <summary> Creates the tag for a given 'sprite' with the given info. </summary>
+		/// <param name="str"> StringBuilder to add to </param>
+		/// <param name="sheetName"> Name of SpriteSheet to add to </param>
+		/// <param name="index"> Index of sprite. &gt;=0 to use index, &lt;0 to use name </param>
+		/// <param name="name"> Name of sprite, or null. </param>
+		/// <param name="color"> HexColor formated string, or null to not insert color</param>
+		/// <param name="tint"> Insert 'tint' directive? </param>
+		/// <returns> Same string builder that was passed in, with the tag added. </returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)] // Gotta go FAST.
+		public static StringBuilder AddTag(StringBuilder str, string sheetName = null, int index = -1, string name = null, string color = null, bool tint = false) {
+
+			str = str + "<sprite";
+			if (sheetName != null && sheetName.Length > 0) {
+				str = str + "=\"" + sheetName + "\"";
+			}
+			if (index >= 0) {
+				str = str + " index=" + index;
+			} else if (name != null && name.Length > 0) {
+				str = str + " name=\"" + name + "\"";
+			} else {
+				str = str + " index=0";
+			}
+			if (color != null && color.Length > 0) {
+				str += " color=";
+				if (!color.StartsWith("#")) { str += '#'; }
+				str += color;
+			}
+			if (tint) {
+				str += " tint";
+			}
+			str += ">";
+
+			return str;
+		}
+		static Regex enhancedGlpyhs = new Regex(@"\[.+?\]", RegexOptions.Compiled);
+		static Regex enhancedInnerGlyph = new Regex(@"([a-zA-Z]+_)?([a-zA-Z\d]+)(\#[a-fA-F0-9]{0,8})?", RegexOptions.Compiled);
+		public static string GlyphToSpriteTag(this string glyph) {
+			StringBuilder str = "";
+			if (glyph.StartsWith("[") && glyph.EndsWith("]")) {
+				string[] sprs = glyph.Split(':');
+				foreach (var spr in sprs) {
+					Match m = enhancedInnerGlyph.Match(spr);
+					if (m.Success) {
+						string sheet = m.Groups[1].Success ? m.Groups[1].Value : "";
+						if (sheet.EndsWith("_")) { sheet = sheet.Substring(0, sheet.Length - 1); }
+						string name = m.Groups[2].Success ? m.Groups[2].Value : "0";
+						int idx; if (!int.TryParse(name, out idx)) { idx = -1; }
+						string color = m.Groups[3].Success ? m.Groups[3].Value : "";
+						AddTag(str, sheet, idx, name, color, false);
+					}
+				}
+
+
+			}
+
+			return str.ToString();
+		}
+
+
+		public static string EnhanceGlyphs(this string markdown) {
+			if (markdown == null || markdown.Length == 0) { return ""; }
+			StringBuilder str = "";
+			int pos = 0;
+			var match = enhancedGlpyhs.Match(markdown, pos);
+			while (match.Success) {
+				
+				int idx = match.Index;
+				int gapLength = idx - pos;
+				string gapContent = markdown.Substring(pos, gapLength);
+
+				str += gapContent;
+
+				string val = match.Value;
+				string tag = GlyphToSpriteTag(val);
+
+				str += tag;
+				pos = idx + val.Length;
+				match = enhancedGlpyhs.Match(markdown, pos);
+			}
+			if (pos >= 0 && pos < markdown.Length) {
+				str += markdown.Substring(pos);
+			}
+			
+			return str.ToString();
+		}
+
+
 		static Regex glyphs = new Regex( @"\[\w+\]" );
 		/// <summary>
 		/// Replaces glyph placeholders with the appropriate TextMeshPro sprite XML tags
