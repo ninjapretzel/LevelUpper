@@ -62,7 +62,7 @@ namespace LevelUpper.RNG {
 		public Vector2 insideUnitSquare { get { return new Vector2(Range(-.5f, .5f), Range(-.5f, .5f)); } }
 
 		/// <summary> Gets a "Random" point inside a sphere centered at (0, 0, 0) with radius 1 </summary>
-		public Vector3 insideUnitSphere { get { return insideUnitSquare.normalized * value; } }
+		public Vector3 insideUnitSphere { get { return insideUnitCube.normalized * value; } }
 		/// <summary> Gets a "Random" point inside a circle centered at (0, 0) with radius 1 </summary>
 		public Vector2 insideUnitCircle { get { return insideUnitSquare.normalized * value; } }
 
