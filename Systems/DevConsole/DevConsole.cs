@@ -15,6 +15,8 @@ using UnityEditor;
 using LevelUpper.Consoles.XBONE;
 using Storage;
 using Users;
+using TextSystems;
+using UnityPlugin;
 #endif
 
 namespace LevelUpper {
@@ -241,9 +243,10 @@ namespace LevelUpper {
 						axisValueCache[pair.Key] = axisValue;
 					}
 				}
-			} else {
+			} else { // !window.open
 				Cursor.lockState = CursorLockMode.None;
 				Cursor.visible = true;
+				window.Update();
 			}
 
 		}
@@ -802,6 +805,7 @@ namespace LevelUpper {
 						}
 					}
 				}
+				window.focusTheTextField = true;
 			}
 
 		}
@@ -1162,25 +1166,28 @@ namespace LevelUpper {
 		/// </summary>
 		/// <param name="path">Path of the file to execute its contents.</param>
 		public static void Exec(string path) {
-			StreamReader sr;
-			if (File.Exists(path)) {
-				sr = File.OpenText(path);
+			TextAsset ta = Resources.Load<TextAsset>(path);
+			if (ta != null) {
+				Execute(ta.text.Split('\n'));
 			} else {
-				if (File.Exists(Application.persistentDataPath + "/" + path)) {
-					sr = File.OpenText(Application.persistentDataPath + "/" + path);
+				string actualPath;
+				if (File.Exists(path)) {
+					actualPath = path;
+				} else if (File.Exists(Application.persistentDataPath + "/" + path)) {
+					actualPath = Application.persistentDataPath + "/" + path;
+				} else if (File.Exists(Application.dataPath + "/" + path)) {
+					actualPath = Application.dataPath + "/" + path;
 				} else {
-					if (File.Exists(Application.dataPath + "/" + path)) {
-						sr = File.OpenText(Application.dataPath + "/" + path);
-					} else {
-						Echo("Unable to find script file to execute " + path);
-						return;
+					Echo("Unable to find script file to execute " + path);
+					return;
+				}
+				using (StreamReader sr = File.OpenText(actualPath)) {
+					while (!sr.EndOfStream) {
+						Execute(sr.ReadLine());
 					}
+					sr.Close();
 				}
 			}
-			while (!sr.EndOfStream) {
-				Execute(sr.ReadLine());
-			}
-			sr.Close();
 
 		}
 
@@ -1560,19 +1567,19 @@ namespace LevelUpper {
 				} GUILayout.EndScrollView();
 				GUILayout.BeginHorizontal(); {
 					GUI.SetNextControlName("ConsoleInput");
-					if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Return && GUI.GetNameOfFocusedControl() == "ConsoleInput" && textField.Length > 0) {
-						TryExecute(textField);
-						textField = "";
-						Event.current.Use();
-					} else if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.UpArrow && cmdIndex > 0) {
-						cmdIndex--;
-						textField = previousCommands[cmdIndex];
-					} else if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.DownArrow && cmdIndex < previousCommands.Count - 1) {
-						cmdIndex++;
-						textField = previousCommands[cmdIndex];
-					} else if (Event.current.type == EventType.KeyDown && (Event.current.keyCode == KeyCode.Escape || (Event.current.keyCode == KeyCode.Menu && Application.platform == RuntimePlatform.Android))) {
-						open = false;
-						textField = "";
+					if (Event.current.type == EventType.KeyDown) {
+						// While the text field is focused, key events are eaten by
+						// the GUI system and are not detected through Input.GetKey.
+						if ((Event.current.keyCode == KeyCode.Return || Event.current.keyCode == KeyCode.KeypadEnter) && GUI.GetNameOfFocusedControl() == "ConsoleInput") {
+							SendKeypress(KeyCode.Return);
+						} else if (Event.current.keyCode == KeyCode.UpArrow) {
+							SendKeypress(KeyCode.UpArrow);
+						} else if (Event.current.keyCode == KeyCode.DownArrow) {
+							SendKeypress(KeyCode.DownArrow);
+						} else if (Event.current.keyCode == KeyCode.Escape
+							   || (Event.current.keyCode == KeyCode.Menu && Application.platform == RuntimePlatform.Android)) {
+							SendKeypress(KeyCode.Escape);
+						}
 					}
 					Color backup = GUI.color;
 					GUI.color = DevConsole.color;
@@ -1589,6 +1596,62 @@ namespace LevelUpper {
 			}
 		}
 
+		public void Update() {
+#if UNITY_XBOXONE
+			// Joystick buttons are not sent through GUI events, must use Input.
+			if (Input.GetKeyDown(KeyCode.JoystickButton0)) {
+				SendKeypress(KeyCode.JoystickButton0);
+			} else if (Input.GetKeyDown(KeyCode.JoystickButton1)) {
+				SendKeypress(KeyCode.Escape);
+			} else if (Input.GetKeyDown(KeyCode.JoystickButton12)) {
+				SendKeypress(KeyCode.UpArrow);
+			} else if (Input.GetKeyDown(KeyCode.JoystickButton13)) {
+				SendKeypress(KeyCode.DownArrow);
+			}
+#endif
+		}
+
+		private void SendKeypress(KeyCode key) {
+			switch (key) {
+				case KeyCode.Return: {
+					TryExecute(textField);
+					textField = "";
+					Event.current?.Use();
+					break;
+				}
+				case KeyCode.UpArrow: {
+					if (cmdIndex > 0) {
+						cmdIndex--;
+						textField = previousCommands[cmdIndex];
+					}
+					break;
+				}
+				case KeyCode.DownArrow: {
+					if (cmdIndex < previousCommands.Count - 1) {
+						cmdIndex++;
+						textField = previousCommands[cmdIndex];
+					}
+					break;
+				}
+				case KeyCode.Escape: {
+					open = false;
+					textField = "";
+					break;
+				}
+				case KeyCode.JoystickButton0: {
+#if UNITY_XBOXONE
+					TextSystemsManager.OnVirtualKeyboardInput += OnKeyboardInputCallback;
+#if !UNITY_EDITOR
+					TextSystemsManager.VirtualKeyboardGetTextAsync(textField, "Console command", "Enter a command", 0);
+#else
+					OnKeyboardInputCallback(AsyncStatus.Completed, 0, "Echo Virtual keyboard opens now");
+#endif
+#endif
+					break;
+				}
+			}
+		}
+
 		public void TryExecute(string cmd) {
 			DevConsole.Echo("> " + cmd);
 			try {
@@ -1602,6 +1665,16 @@ namespace LevelUpper {
 			focusTheTextField = true;
 			scrollPos = new Vector2(0, 99999);
 		}
+
+#if UNITY_XBOXONE
+		private void OnKeyboardInputCallback(AsyncStatus result, int resultCode, string resultData) {
+			if (result == AsyncStatus.Completed) {
+				TryExecute(resultData);
+				textField = "";
+			}
+			TextSystemsManager.OnVirtualKeyboardInput -= OnKeyboardInputCallback;
+		}
+#endif
 
 	}
 
