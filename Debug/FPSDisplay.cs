@@ -2,15 +2,15 @@ using System;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Diagnostics;
+using LevelUpper.Extensions;
 
 namespace LevelUpper.Debugs {
+	public class FPSDisplay : MonoBehaviour {
 
-public class FPSDisplay : MonoBehaviour {
-
-	#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
 		private static List<float> deltaTimes = new List<float>();
 		private bool down = false;
-		private static bool show = false;
+		[NonSerialized] public static bool show = false;
 		[SerializeField] private float barWidth = 10;
 		[SerializeField] private float barSpacing = 5;
 		[SerializeField] private float greenFPS = 30;
@@ -36,18 +36,18 @@ public class FPSDisplay : MonoBehaviour {
 				down = false;
 			}
 		}
-	
+
 		public static void Toggle() {
 			deltaTimes = new List<float>();
 			show = !show;
 		}
-	
+
 		protected void OnGUI() {
-			Color backup = GUI.color;
-			int sizeBackup = GUI.skin.label.fontSize;
 			if (deltaTimes.Count > 0) {
+				Color backup = GUI.color;
+				int sizeBackup = GUI.skin.label.fontSize;
 				float last = deltaTimes[deltaTimes.Count - 1];
-				GUI.skin.label.fontSize = 48;
+				GUI.skin.label.fontSize = 32;
 				if (last < 1f / greenFPS) {
 					GUI.color = Color.green;
 				} else if (last < 1f / yellowFPS) {
@@ -55,8 +55,9 @@ public class FPSDisplay : MonoBehaviour {
 				} else {
 					GUI.color = Color.red;
 				}
-				Rect screen = new Rect(0, 0, Screen.width, Screen.height);
-				GUI.Label(screen, "FPS: " + (1f / last).ToString());
+				TextAnchor alignbackup = GUI.skin.label.alignment;
+				GUI.Label(new Rect(0, 0, Screen.width, Screen.height).MiddleCenter(0.9f, 0.9f), "FPS: " + (1f / last).ToString() + "\nRes: " + Screen.width.ToString() + " x " + Screen.height.ToString() + " " + Screen.currentResolution.refreshRate.ToString() + "Hz\nDeltaTime: " + (Time.unscaledDeltaTime * 1000).ToString("#,##0.00") + "ms");
+				GUI.skin.label.alignment = alignbackup;
 				float total = 0;
 				for (int i = 0; i < deltaTimes.Count; ++i) {
 					float current = deltaTimes[deltaTimes.Count - 1 - i];
@@ -78,10 +79,10 @@ public class FPSDisplay : MonoBehaviour {
 				GUI.color = Color.cyan;
 				float average = (total / deltaTimes.Count);
 				GUI.DrawTexture(new Rect(0, Screen.height - (average * 1000), Screen.width, 1), Texture2D.whiteTexture);
+				GUI.skin.label.fontSize = sizeBackup;
+				GUI.color = backup;
 			}
-			GUI.skin.label.fontSize = sizeBackup;
-			GUI.color = backup;
 		}
-	#endif
+#endif
 	}
 }
