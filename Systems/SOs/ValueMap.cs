@@ -8,7 +8,7 @@ using UnityEditorInternal;
 using UnityEditor;
 [CustomEditor(typeof(ValueMap))]
 public class ValueMapEditor : Editor {
-	ReorderableList list;
+	private ReorderableList list;
 
 	static int baseWidth = 110;
 	static int padding = 2;

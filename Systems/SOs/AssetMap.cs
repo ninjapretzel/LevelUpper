@@ -6,14 +6,14 @@ using System.Collections.ObjectModel;
 using UnityEngine.SceneManagement;
 using System.IO;
 using System.Linq;
-using UnityEditorInternal;
 using Asset = UnityEngine.Object;
 #if UNITY_EDITOR
+using UnityEditorInternal;
 using UnityEditor;
 
 [CustomEditor(typeof(AssetMap))]
 public class AssetMapEditor : Editor {
-	ReorderableList list;
+	private ReorderableList list;
 
 	static int baseWidth = 110;
 	static int padding = 2;
@@ -47,23 +47,26 @@ public class AssetMapEditor : Editor {
 	}
 	public override void OnInspectorGUI() {
 		AssetMap targetMap = target as AssetMap;
-		var folder = targetMap.folder;
+
+		var folder = AssetDatabase.LoadMainAssetAtPath(targetMap.folderPath);
 		serializedObject.Update();
 
-		var folderProperty = serializedObject.FindProperty("folder");
-		EditorGUILayout.ObjectField(folderProperty, typeof(Asset), new GUIContent("Folder"));
+		var newFolder = EditorGUILayout.ObjectField("Folder", folder, typeof(Asset), false);
+		var folderProperty = serializedObject.FindProperty("folderPath");
+		folderProperty.stringValue = AssetDatabase.GetAssetPath(newFolder);
 		
-
 		list.DoLayoutList();
 
 		serializedObject.ApplyModifiedProperties();
 
-		if (targetMap.folder != folder) {
+		if (newFolder != folder) {
 			Undo.RecordObject(target, "Update AssetMap List");
-			AssetMapUtils.Rebuild(targetMap, targetMap.folder);
+			AssetMapUtils.Rebuild(targetMap, newFolder);
+			targetMap.folderPath = AssetDatabase.GetAssetPath(newFolder);
 		}
-		
+
 		serializedObject.Update();
+		serializedObject.ApplyModifiedProperties();
 	}	
 
 	public static Asset[] ObjectsInFolder(string path) {
@@ -106,9 +109,11 @@ public class AssetMapEntryDrawer : PropertyDrawer {
 		EditorGUI.EndProperty();
 	}
 }
+#endif 
 
 public class AssetMapUtils {
 	public static void Rebuild(AssetMap map, Asset folder) {
+#if UNITY_EDITOR
 		if (folder != null) {
 
 			var path = AssetDatabase.GetAssetPath(folder);
@@ -130,18 +135,14 @@ public class AssetMapUtils {
 					}
 
 				}
-				
+
 				map.list = entries;
 
 			}
 		}
+#endif
 	}
 }
-#else
-public class AssetMapUtils {
-	public static void Rebuild(AssetMap map, Asset folder) { }
-}
-#endif
 
 [CreateAssetMenu(fileName = "New AssetMap", menuName = "SOs/Create New AssetMap", order = 9000)]
 public class AssetMap : ScriptableObject, IDictionary<string, Asset> {
@@ -164,7 +165,7 @@ public class AssetMap : ScriptableObject, IDictionary<string, Asset> {
 		}
 	}
 	
-	public Asset folder;
+	public string folderPath;
 	public List<Entry> list;
 	private Dictionary<string, Asset> data;
 
@@ -188,9 +189,16 @@ public class AssetMap : ScriptableObject, IDictionary<string, Asset> {
 	void OnEnable() {
 		if (data == null) {
 			data = new Dictionary<string, Asset>();
-			if (folder != null) {
-				AssetMapUtils.Rebuild(this, folder);
+			#if UNITY_EDITOR
+			if (folderPath != null && folderPath != "" && AssetDatabase.IsValidFolder(folderPath)) {
+				Asset folder = AssetDatabase.LoadMainAssetAtPath(folderPath);
+
+				if (folder != null) {
+					AssetMapUtils.Rebuild(this, folder);
+				}
 			}
+			#endif
+
 			if (list != null) {
 				foreach (var entry in list) {
 					data[entry.Key] = entry.Value;

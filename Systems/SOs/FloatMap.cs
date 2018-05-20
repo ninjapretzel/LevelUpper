@@ -4,12 +4,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine.SceneManagement;
-using UnityEditorInternal;
 #if UNITY_EDITOR
+using UnityEditorInternal;
 using UnityEditor;
 [CustomEditor(typeof(FloatMap))]
 public class FloatMapEditor : Editor {
-	ReorderableList list;
+	private ReorderableList list;
 
 	static int baseWidth = 110;
 	static int padding = 2;
