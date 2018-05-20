@@ -7,7 +7,7 @@ namespace LevelUpper.Sound {
 		void Awake() { if (transform.parent == null) { DontDestroyOnLoad(gameObject); } }
 		void Start() { if (transform.parent == null) { DontDestroyOnLoad(gameObject); } }
 		void LateUpdate() {
-			if (GetComponent<AudioSource>()) {
+			if (GetComponent<AudioSource>() != null) {
 				if (!GetComponent<AudioSource>().isPlaying) { Destroy(gameObject); }
 			} else { Destroy(gameObject); }
 		}
