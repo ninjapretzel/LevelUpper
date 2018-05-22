@@ -15,8 +15,15 @@ public class FloatMapEditor : Editor {
 	static int padding = 2;
 
 	void OnEnable() {
-		list = new ReorderableList(serializedObject, serializedObject.FindProperty("list"), true, true, true, true);
-		
+		RefreshList();
+	}
+
+	private void RefreshList() {
+		string propertyName = EditorApplication.isPlaying ?
+			"runtimeList" : "list";
+
+		list = new ReorderableList(serializedObject, serializedObject.FindProperty(propertyName), true, true, true, true);
+
 		list.drawHeaderCallback = (Rect rect) => {
 			EditorGUI.LabelField(rect, "FloatMap Properties");
 		};
@@ -41,12 +48,28 @@ public class FloatMapEditor : Editor {
 
 		};
 	}
-	public override void OnInspectorGUI() {
-		serializedObject.Update();
 
+	public override void OnInspectorGUI() {
+
+		string propertyName = EditorApplication.isPlayingOrWillChangePlaymode ?
+			"runtimeList" : "list";
+
+		GUILayout.Label("Showing " + propertyName);
+		FloatMap floatMap = (FloatMap)target;
+		if (EditorApplication.isPlaying && floatMap.dirtyList) {
+			floatMap.RebuildRuntimeList();
+		}
+
+		serializedObject.Update();
+		
+		EditorGUI.BeginChangeCheck();
 		list.DoLayoutList();
 
 		serializedObject.ApplyModifiedProperties();
+		if (EditorGUI.EndChangeCheck() && EditorApplication.isPlaying) {
+			floatMap.RebuildRuntimeDictionary();
+		}
+
 	}
 }
 
@@ -84,49 +107,72 @@ public class FloatMap : ScriptableObject, IDictionary<string, float> {
 	public struct Entry {
 		public string Key;
 		public float Value;
+		public Entry(string key, float val) { Key = key; Value = val; }
 	}
 
-	private static readonly string[] EMPTY_STRINGS = { };
-	private static readonly ReadOnlyCollection<string> EMPTY_STRING_COL = new ReadOnlyCollection<string>(EMPTY_STRINGS);
-	private static readonly float[] EMPTY_INTS = { };
-	private static readonly ReadOnlyCollection<float> EMPTY_INT_COL = new ReadOnlyCollection<float>(EMPTY_INTS);
+	private static readonly string[] EMPTY_KEYS = { };
+	private static readonly ReadOnlyCollection<string> EMPTY_KEYS_COL = new ReadOnlyCollection<string>(EMPTY_KEYS);
+	private static readonly float[] EMPTY_VALS = { };
+	private static readonly ReadOnlyCollection<float> EMPTY_VALS_COL = new ReadOnlyCollection<float>(EMPTY_VALS);
 
-	public List<Entry> list;
+	public List<Entry> list = new List<Entry>();
+	[SerializeField] private List<Entry> runtimeList;
+	[SerializeField] private bool _dirtyList;
+	public bool dirtyList { get { return _dirtyList; } }
+	[SerializeField] private bool _dirtyDict = false;
+	public bool dirtyDict { get { return _dirtyDict; } }
 
 	private Dictionary<string, float> data;
 
-	public ICollection<string> Keys { get { return ((ICollection<string>)data?.Keys) ?? EMPTY_STRING_COL; } }
+	public ICollection<string> Keys { get { return ((ICollection<string>)data?.Keys) ?? EMPTY_KEYS_COL; } }
 
-	public ICollection<float> Values { get { return ((ICollection<float>)data?.Values) ?? EMPTY_INT_COL; } }
+	public ICollection<float> Values { get { return ((ICollection<float>)data?.Values) ?? EMPTY_VALS_COL; } }
 
 	public int Count { get { return data != null ? data.Count : 0; } }
 
 	public bool IsReadOnly { get { return data != null; } }
 
 	public float this[string key] {
-		get { return data != null ? data[key] : 0f; }
-		set { if (data != null) { data[key] = value; } }
+		get { return (data != null && data.ContainsKey(key)) ? data[key] : 0f; }
+		set { if (data != null) { _dirtyList = true; data[key] = value; } }
 	}
-
-	void Awake() {
-
-	}
-
+	
 	void OnEnable() {
 		if (data == null) {
 			data = new Dictionary<string, float>();
-
-			if (list != null) {
-				foreach (var entry in list) {
-					data[entry.Key] = entry.Value;
-				}
-			}
 		}
+
+		foreach (var entry in list) {
+			data[entry.Key] = entry.Value;
+		}
+		runtimeList = new List<Entry>(list);
+		//runtimeList.AddRange(list);
 	}
 
 	void OnDisable() {
 		data = null;
 	}
+
+	public void RebuildRuntimeList() {
+		RebuildList(runtimeList);
+		_dirtyList = false;
+	}
+
+	public void RebuildList(List<Entry> list) {
+		list.Clear();
+		foreach (var pair in data) {
+			list.Add(new Entry(pair.Key, pair.Value));
+		}
+	}
+
+	public void RebuildRuntimeDictionary() {
+		data.Clear();
+		_dirtyDict = false;
+		foreach (var entry in list) {
+			data[entry.Key] = entry.Value;
+		}
+	}
+
 
 	public bool ContainsKey(string key) {
 		return data != null ? data.ContainsKey(key) : false;
@@ -137,6 +183,7 @@ public class FloatMap : ScriptableObject, IDictionary<string, float> {
 	}
 
 	public bool Remove(string key) {
+		_dirtyList = true;
 		return data != null ? data.Remove(key) : false;
 	}
 
@@ -147,11 +194,11 @@ public class FloatMap : ScriptableObject, IDictionary<string, float> {
 	}
 
 	public void Add(KeyValuePair<string, float> item) {
-		if (data != null) { data.Add(item.Key, item.Value); }
+		if (data != null) { data.Add(item.Key, item.Value); _dirtyList = true; }
 	}
 
 	public void Clear() {
-		if (data != null) { data.Clear(); }
+		if (data != null) { data.Clear(); _dirtyList = true; }
 	}
 
 	public bool Contains(KeyValuePair<string, float> item) {
@@ -170,7 +217,7 @@ public class FloatMap : ScriptableObject, IDictionary<string, float> {
 	}
 
 	public bool Remove(KeyValuePair<string, float> item) {
-		if (Contains(item)) { return Remove(item.Key); }
+		if (Contains(item)) { _dirtyList = true; return Remove(item.Key); }
 		return false;
 	}
 
