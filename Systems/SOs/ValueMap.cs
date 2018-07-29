@@ -128,6 +128,19 @@ public class ValueMap : ScriptableObject, IDictionary<string, object> {
 		}
 	}
 
+	public void Set(string key, string value) { this[key] = value; }
+	public void Set(string key, float value) { this[key] = value; }
+	public void Set(string key, int value) { this[key] = value; }
+	public void Set(string key, bool value) { this[key] = value; }
+	public void Set(string key, UnityEngine.Object value) { this[key] = value; }
+
+	public void Set(ValueMap source) {
+		foreach (var pair in source) {
+			this[pair.Key] = pair.Value;
+		}
+	}
+
+
 	public T Pull<T>(string name, T defaultVal = default(T)) {
 		if (data.ContainsKey(name)) {
 			object val = data[name];
