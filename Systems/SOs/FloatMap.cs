@@ -128,6 +128,20 @@ public class FloatMap : ScriptableObject, IDictionary<string, float> {
 		data = null;
 	}
 
+	public void Increment(FloatMap other) {
+		foreach (var pair in other) {
+			this[pair.Key] += pair.Value;
+		}
+	}
+
+	public void Cap(FloatMap other) {
+		foreach (var pair in other) {
+			if (this[pair.Key] > pair.Value) {
+				this[pair.Key] = pair.Value;
+			}
+		}
+	}
+
 	public bool ContainsKey(string key) {
 		return data != null ? data.ContainsKey(key) : false;
 	}
