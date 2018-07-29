@@ -19,10 +19,6 @@ public class AssetMapEditor : Editor {
 	static int padding = 2;
 
 	void OnEnable() {
-		RefreshList();
-	}
-
-	private void RefreshList() {
 		list = new ReorderableList(serializedObject, serializedObject.FindProperty("list"), true, true, true, true);
 
 		list.drawHeaderCallback = (Rect rect) => {
@@ -49,9 +45,7 @@ public class AssetMapEditor : Editor {
 
 		};
 	}
-
 	public override void OnInspectorGUI() {
-		
 		AssetMap targetMap = target as AssetMap;
 
 		var folder = AssetDatabase.LoadMainAssetAtPath(targetMap.folderPath);
@@ -67,10 +61,7 @@ public class AssetMapEditor : Editor {
 
 		if (newFolder != folder) {
 			Undo.RecordObject(target, "Update AssetMap List");
-			if (!EditorApplication.isPlaying) {
-				AssetMapUtils.Rebuild(targetMap, newFolder);
-
-			}
+			AssetMapUtils.Rebuild(targetMap, newFolder);
 			targetMap.folderPath = AssetDatabase.GetAssetPath(newFolder);
 		}
 
@@ -175,8 +166,7 @@ public class AssetMap : ScriptableObject, IDictionary<string, Asset> {
 	}
 	
 	public string folderPath;
-	public List<Entry> list = new List<Entry>();
-
+	public List<Entry> list;
 	private Dictionary<string, Asset> data;
 
 	public ICollection<string> Keys { get { return ((ICollection<string>)data?.Keys) ?? EMPTY_STRING_COL; } }
@@ -188,7 +178,7 @@ public class AssetMap : ScriptableObject, IDictionary<string, Asset> {
 	public bool IsReadOnly { get { return data != null; } }
 
 	public Asset this[string key] {
-		get { return (data != null && data.ContainsKey(key)) ? data[key] : null; }
+		get { return data != null ? data[key] : null; }
 		set { if (data != null) { data[key] = value; } }
 	}
 
@@ -199,22 +189,23 @@ public class AssetMap : ScriptableObject, IDictionary<string, Asset> {
 	void OnEnable() {
 		if (data == null) {
 			data = new Dictionary<string, Asset>();
-		}
-		#if UNITY_EDITOR
-		if (folderPath != null && folderPath != "" && AssetDatabase.IsValidFolder(folderPath)) {
-			Asset folder = AssetDatabase.LoadMainAssetAtPath(folderPath);
+			#if UNITY_EDITOR
+			if (folderPath != null && folderPath != "" && AssetDatabase.IsValidFolder(folderPath)) {
+				Asset folder = AssetDatabase.LoadMainAssetAtPath(folderPath);
 
-			if (folder != null) {
-				AssetMapUtils.Rebuild(this, folder);
+				if (folder != null) {
+					AssetMapUtils.Rebuild(this, folder);
+				}
+			}
+			#endif
+
+			if (list != null) {
+				foreach (var entry in list) {
+					data[entry.Key] = entry.Value;
+				}
 			}
 		}
-		#endif
-			
-		foreach (var entry in list) {
-			data[entry.Key] = entry.Value;
-		}
 	}
-	
 
 	void OnDisable() {
 		data = null;

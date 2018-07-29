@@ -6,7 +6,6 @@ using System.Collections.ObjectModel;
 #if UNITY_EDITOR
 using UnityEditorInternal;
 using UnityEditor;
-
 [CustomEditor(typeof(ValueMap))]
 public class ValueMapEditor : Editor {
 	private ReorderableList list;
@@ -15,19 +14,12 @@ public class ValueMapEditor : Editor {
 	static int padding = 2;
 
 	void OnEnable() {
-		RefreshList();
-
-	}
-	void RefreshList() {
-		string propertyName = EditorApplication.isPlaying ?
-			"runtimeList" : "list";
-
-		list = new ReorderableList(serializedObject, serializedObject.FindProperty(propertyName), true, true, true, true);
+		list = new ReorderableList(serializedObject, serializedObject.FindProperty("properties"), true, true, true, true);
 
 		list.drawHeaderCallback = (Rect rect) => {
 			EditorGUI.LabelField(rect, "ValueMap Properties");
 		};
-
+		
 		list.elementHeightCallback = (index) => {
 			return EditorGUIUtility.singleLineHeight + padding * 2;
 		};
@@ -51,30 +43,16 @@ public class ValueMapEditor : Editor {
 			EditorGUI.PropertyField(rest, dataProp, GUIContent.none);
 
 		};
+
 	}
 
 	public override void OnInspectorGUI() {
-		
-		string propertyName = EditorApplication.isPlayingOrWillChangePlaymode ?
-			"runtimeList" : "list";
-
-		GUILayout.Label("Showing " + propertyName);
-		ValueMap valueMap = (ValueMap) target;
-		if (EditorApplication.isPlaying && valueMap.dirtyList) {
-			valueMap.RebuildRuntimeList();
-		}
 
 		serializedObject.Update();
 
-		EditorGUI.BeginChangeCheck();
 		list.DoLayoutList();
-		
-		serializedObject.ApplyModifiedProperties();
-		if (EditorGUI.EndChangeCheck() && EditorApplication.isPlaying) {
-			valueMap.RebuildRuntimeDictionary();
-		}
 
-		
+		serializedObject.ApplyModifiedProperties();
 
 	}
 
@@ -86,10 +64,10 @@ public class ValueMapEditor : Editor {
 
 [CreateAssetMenu(fileName="NewValueMap", menuName="SOs/Create New ValueMap", order = 9000)]
 public class ValueMap : ScriptableObject, IDictionary<string, object> {
-	private static readonly string[] EMPTY_KEYS = { };
-	private static readonly ReadOnlyCollection<string> EMPTY_KEYS_COL = new ReadOnlyCollection<string>(EMPTY_KEYS);
+	private static readonly string[] EMPTY_STRINGS = { };
+	private static readonly ReadOnlyCollection<string> EMPTY_STRING_COL = new ReadOnlyCollection<string>(EMPTY_STRINGS);
 	private static readonly object[] EMPTY_VALS = { };
-	private static readonly ReadOnlyCollection<object> EMPTY_VALS_COL = new ReadOnlyCollection<object>(EMPTY_VALS);
+	private static readonly ReadOnlyCollection<object> EMPTY_VAL_COL = new ReadOnlyCollection<object>(EMPTY_VALS);
 
 	public enum EntryType {
 		String,
@@ -101,43 +79,6 @@ public class ValueMap : ScriptableObject, IDictionary<string, object> {
 
 	[Serializable] public struct Entry {
 		public string Key;
-
-		public Entry(string key, string val) {
-			StringValue = null; FloatValue = 0; IntValue = 0; BoolValue = false; ObjectValue = null;
-			Key = key; StringValue = val;
-			Type = EntryType.String;
-		}
-		public Entry (string key, float val) {
-			StringValue = null; FloatValue = 0; IntValue = 0; BoolValue = false; ObjectValue = null;
-			Key = key; FloatValue = val;
-			Type = EntryType.Float;
-		}
-		public Entry(string key, int val) {
-			StringValue = null; FloatValue = 0; IntValue = 0; BoolValue = false; ObjectValue = null;
-			Key = key; IntValue = val;
-			Type = EntryType.Int;
-		}
-		public Entry(string key, bool val) {
-			StringValue = null; FloatValue = 0; IntValue = 0; BoolValue = false; ObjectValue = null;
-			Key = key; BoolValue = val;
-			Type = EntryType.Bool;
-		}
-		public Entry(string key, UnityEngine.Object val) {
-			StringValue = null; FloatValue = 0; IntValue = 0; BoolValue = false; ObjectValue = null;
-			Key = key; ObjectValue = val;
-			Type = EntryType.Object;
-		}
-		public Entry(string key, object val) {
-			StringValue = null; FloatValue = 0; IntValue = 0; BoolValue = false; ObjectValue = null;
-			Key = key;
-
-			if (val is UnityEngine.Object) { ObjectValue = (UnityEngine.Object)val; Type = EntryType.Object; }
-			else if (val is int) { IntValue = (int) val; Type = EntryType.Int; }
-			else if (val is float) { FloatValue = (float)val; Type = EntryType.Float; }
-			else if (val is bool) { BoolValue = (bool)val; Type = EntryType.Bool; }
-			else if (val is string) { StringValue = (string)val; Type = EntryType.String; }
-			else { Type = EntryType.Object; } // Default to nulls
-		}
 
 		public EntryType Type;
 		public string StringValue;
@@ -163,26 +104,19 @@ public class ValueMap : ScriptableObject, IDictionary<string, object> {
 		}
 	}
 	
-	public List<Entry> list = new List<Entry>();
-	[SerializeField] private List<Entry> runtimeList;
-	[SerializeField] private bool _dirtyList;
-	public bool dirtyList { get { return _dirtyList; } }
-	[SerializeField] private bool _dirtyDict = false;
-	public bool dirtyDict { get { return _dirtyDict; } }
-
-
+	public List<Entry> properties = new List<Entry>();
 	private Dictionary<string, object> data;
 
-	public ICollection<string> Keys { get { return ((ICollection<string>)data?.Keys) ?? EMPTY_KEYS_COL; } }
+	public ICollection<string> Keys { get { return ((ICollection<string>)data?.Keys) ?? EMPTY_STRING_COL; } }
 
-	public ICollection<object> Values { get { return ((ICollection<object>)data?.Values) ?? EMPTY_VALS_COL; } }
+	public ICollection<object> Values { get { return ((ICollection<object>)data?.Values) ?? EMPTY_VAL_COL; } }
 
 	public int Count { get { return data != null ? data.Count : 0; } }
 
 	public bool IsReadOnly { get { return data != null; } }
 
 	public object this[string key] {
-		get { return (data != null && data.ContainsKey(key)) ? data[key] : null; }
+		get { return data != null ? data.ContainsKey(key) ? data[key] : null : null; }
 		set { 
 			if (data != null) {
 				if (value != null) {
@@ -190,7 +124,6 @@ public class ValueMap : ScriptableObject, IDictionary<string, object> {
 				} else {
 					data.Remove(key);
 				}
-				_dirtyList = true;
 			} 
 		}
 	}
@@ -209,50 +142,18 @@ public class ValueMap : ScriptableObject, IDictionary<string, object> {
 
 		if (data == null) {
 			data = new Dictionary<string, object>();
-		}
 
-		foreach (var entry in list) {
-			data[entry.Key] = entry.Value;
+			if (properties != null) {
+				foreach (var entry in properties) {
+					data[entry.Key] = entry.Value;
+				}
+			}
 		}
-		
-		runtimeList = new List<Entry>(list);
-		//runtimeList.AddRange(list);
-		
 	}
 	
 	void OnDisable() {
 		data = null;
 	}
-
-	public void Set(ValueMap source) {
-		foreach (var pair in source) {
-			this[pair.Key] = pair.Value;
-		}
-		_dirtyList = true;
-	}
-
-	public void RebuildRuntimeList() {
-		RebuildList(runtimeList);
-		_dirtyList = false;
-	}
-
-	public void RebuildList(List<Entry> list) {
-		list.Clear();
-		foreach (var pair in data) {
-			list.Add(new Entry(pair.Key, pair.Value));
-		}
-	}
-
-	public void RebuildRuntimeDictionary() {
-		data.Clear();
-		_dirtyDict = false;
-		foreach (var entry in list) {
-			data[entry.Key] = entry.Value;
-		}
-	}
-
-
-
 	public bool ContainsKey(string key) {
 		return data != null ? data.ContainsKey(key) : false;
 	}
@@ -262,7 +163,6 @@ public class ValueMap : ScriptableObject, IDictionary<string, object> {
 	}
 
 	public bool Remove(string key) {
-		_dirtyList = true;
 		return data != null ? data.Remove(key) : false;
 	}
 
@@ -273,11 +173,11 @@ public class ValueMap : ScriptableObject, IDictionary<string, object> {
 	}
 
 	public void Add(KeyValuePair<string, object> item) {
-		if (data != null) { data.Add(item.Key, item.Value); _dirtyList = true; }
+		if (data != null) { data.Add(item.Key, item.Value); }
 	}
 
 	public void Clear() {
-		if (data != null) { data.Clear(); _dirtyList = true; }
+		if (data != null) { data.Clear(); }
 	}
 
 	public bool Contains(KeyValuePair<string, object> item) {
@@ -296,7 +196,7 @@ public class ValueMap : ScriptableObject, IDictionary<string, object> {
 	}
 
 	public bool Remove(KeyValuePair<string, object> item) {
-		if (Contains(item)) { _dirtyList = true; return Remove(item.Key); }
+		if (Contains(item)) { return Remove(item.Key); }
 		return false;
 	}
 
