@@ -3,8 +3,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using LevelUpper.Extensions;
-#if TMPRO || TMP_Present
 using TMPro;
+
 namespace LevelUpper.FX {
 	public class Fancy3dText : MonoBehaviour {
 		public static Fancy3dText Factory() {
@@ -206,4 +206,3 @@ namespace LevelUpper.FX {
 
 
 }
-#endif

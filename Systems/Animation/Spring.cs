@@ -86,10 +86,9 @@ public class SpringQ : ISimpleAnim<Quaternion> {
 			velAngle = 0;
 			Debug.Log("vel axis triggered NAN check");
 		}
-
-		var aut = target * Quaternion.Inverse(value);
-		aut.ToAngleAxis(out angle, out axis);
-		
+		Quaternion inv = target * Quaternion.Inverse(value);
+		inv.ToAngleAxis(out angle, out axis);
+		//(target * Quaternion.Inverse(value)).ToAngleAxis(out angle, out axis);
 		if (!axis.x.IsNAN()) {
 
 			if (angle > 180) { angle -= 360; }
