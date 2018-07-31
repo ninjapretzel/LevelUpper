@@ -18,7 +18,14 @@ public class GGUI_Control : MonoBehaviour {
 		control?.__Live?.Invoke(rt);
 
 		if (control?.anchorTransform != null) {
-			control.Reposition();
+			Vector3 pos = Camera.main.WorldToViewportPoint(control.anchorTransform.position);
+			if (pos.z > 0) {
+				control.Reposition();
+			} else {
+				
+				
+			}
+
 		}
 
 	}
