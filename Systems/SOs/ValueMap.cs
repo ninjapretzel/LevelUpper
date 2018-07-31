@@ -62,7 +62,7 @@ public class ValueMapEditor : Editor {
 
 
 
-[CreateAssetMenu(fileName="NewValueMap", menuName="SOs/Create New ValueMap", order = 56)]
+[CreateAssetMenu(fileName="NewValueMap", menuName="SOs/Create New ValueMap", order = 9000)]
 public class ValueMap : ScriptableObject, IDictionary<string, object> {
 	private static readonly string[] EMPTY_STRINGS = { };
 	private static readonly ReadOnlyCollection<string> EMPTY_STRING_COL = new ReadOnlyCollection<string>(EMPTY_STRINGS);

@@ -77,7 +77,7 @@ public class FloatMapEntryDrawer : PropertyDrawer {
 
 #endif
 
-[CreateAssetMenu(fileName = "New FloatMap", menuName = "SOs/Create New FloatMap", order = 56)]
+[CreateAssetMenu(fileName = "New FloatMap", menuName = "SOs/Create New FloatMap", order = 9000)]
 public class FloatMap : ScriptableObject, IDictionary<string, float> {
 
 	[Serializable]
@@ -92,14 +92,6 @@ public class FloatMap : ScriptableObject, IDictionary<string, float> {
 	private static readonly ReadOnlyCollection<float> EMPTY_INT_COL = new ReadOnlyCollection<float>(EMPTY_INTS);
 
 	public List<Entry> list;
-
-	public JsonObject ToJsonObject() {
-		JsonObject obj = new JsonObject();
-		foreach (var pair in this) {
-			obj[pair.Key] = pair.Value;
-		}
-		return obj;
-	}
 
 	private Dictionary<string, float> data;
 
