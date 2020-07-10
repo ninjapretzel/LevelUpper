@@ -38,8 +38,8 @@ namespace LevelUpper.Systems.Jobs {
 		/// <summary> Assigned function which takes a TIn and returns a TOut, used to process elements being piped. </summary>
 		private Func<TIn, TOut> processorFunc;
 
-		/// <summary> Task object for running these jobs async. </summary>
-		private Task runner;
+		// <summary> Task object for running these jobs async. </summary>
+		// private Task runner;
 
 		/// <summary> Returns true if there are no inputs sitting in the pipe, used to process elements being piped.  </summary>
 		public bool Dry { get { return inputs.Count == 0; } }

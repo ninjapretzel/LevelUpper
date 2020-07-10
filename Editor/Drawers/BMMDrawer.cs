@@ -12,6 +12,7 @@ public class BMMDrawer : PropertyDrawer {
 		Rect contentPosition = EditorGUI.PrefixLabel(position, label);
 
 		contentPosition.width *= 0.1f;
+		var ident = EditorGUI.indentLevel;
 		EditorGUI.indentLevel = 0;
 		EditorGUIUtility.labelWidth = 14f;
 		EditorGUI.PropertyField(contentPosition, property.FindPropertyRelative("flag"), new GUIContent(""));
@@ -25,6 +26,7 @@ public class BMMDrawer : PropertyDrawer {
 		EditorGUIUtility.labelWidth = 14f;
 		EditorGUI.PropertyField(contentPosition, property.FindPropertyRelative("max"), new GUIContent("..."));
 		
+		EditorGUI.indentLevel = ident;
 		EditorGUI.EndProperty();
 	}
 

@@ -35,8 +35,10 @@ namespace LevelUpper {
 		/// Setting to 3 will also echo every single command that is executed, and is not recommended unless
 		/// trying to see what exactly is being executed and how often.</summary>
 		public static int debug = 0;
+#pragma warning disable 0649
 		[Tooltip("Classes, namespaces or members which should never be accessed from the DevConsole.")]
 		[SerializeField] private string[] blacklist;
+#pragma warning restore 0649
 		/// <summary>Classes, namespaces or members which should never be accessed from the DevConsole, static version.
 		/// The serialized blacklist is copied into the static one on start.</summary>
 		private static List<string> classBlacklist = new List<string>();

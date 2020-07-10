@@ -9,13 +9,14 @@ using UnityEngine.UI;
 public class GGUIBehaviour : MonoBehaviour {
 
 	public static readonly Rect unit = new Rect(0, 0, 1, 1);
-
-
+	
 	public RectTransform gui = null;
-	public bool rebuild = false;
+	public bool rebuildOnEnable = false;
+	public bool rebuildOnUpdate = false;
 
 	public virtual void OnEnable() {
-		if (rebuild && gui != null) { 
+		if (rebuildOnEnable && gui != null) {
+			rebuildOnEnable = false;
 			Destroy(gui.gameObject); 
 			gui = null;
 		}
@@ -32,7 +33,12 @@ public class GGUIBehaviour : MonoBehaviour {
 	}
 
 	public virtual void Update() {
-
+		if (rebuildOnUpdate && gui != null) {
+			rebuildOnUpdate = false;
+			Destroy(gui.gameObject);
+			gui = null;
+			BuildGUI();
+		}
 	}
 
 
@@ -46,9 +52,11 @@ public class GGUIBehaviour : MonoBehaviour {
 			Destroy(gui.gameObject); 
 		}
 		gui = null;
+		BuildGUI();
 	}
 
 	private void BuildGUI() {
+		Debug.Log($"BuildGUI for {GetType().Name}");
 
 		if (gui == null) {
 			gui = Render(this.RenderGUI);
@@ -66,21 +74,28 @@ public class GGUIBehaviour : MonoBehaviour {
 		
 		enabled = false;
 		target.enabled = true;
+	}
 
+	public void SwitchTo(GGUIBehaviour target) {
+		if (target != null) {
+			enabled = false;
+			target.enabled = true;
+		}
 	}
 
 
-	public void SetupSimpleBar(GGUIControl control, Sprite sprite, Material mat, Func<float> ffill, float dampening = 5f) {
+	public Material SetupSimpleBar(GGUIControl control, Sprite sprite, Material mat, Func<float> ffill, float dampening = 5f) {
 		float delta = 0;
 		float fill = ffill();
 		Image img = null;
+		Material matCopy = new Material(mat);
 
 		control.OnReadyRect((rt) => {
 			img = rt.GetComponent<Image>();
 			img.sprite = sprite;
-			img.material = new Material(mat);
+			img.material = matCopy;
 			img.material.SetFloat("_Fill", fill);
-			img.material.SetFloat("_Fill", delta);
+			img.material.SetFloat("_Delta", delta);
 		});
 
 		control.Update((rt) => {
@@ -101,6 +116,7 @@ public class GGUIBehaviour : MonoBehaviour {
 				img.material.SetVector("_SizeInfo", size);
 			}
 		});
+		return matCopy;
 	}
 
 

@@ -377,7 +377,9 @@ public static partial class GGUI {
 		get { 
 			if (_canvas == null) { 
 				_canvas = GameObject.Find("Canvas");
-				GameObject.DontDestroyOnLoad(_canvas);
+				if (_canvas != null) {
+					GameObject.DontDestroyOnLoad(_canvas);
+				}
 				if (_canvas == null) { return null; }
 			}	
 			return _canvas.GetComponent<RectTransform>();
@@ -391,7 +393,9 @@ public static partial class GGUI {
 		get {
 			if (_worldCanvas == null) {
 				_worldCanvas = GameObject.Find("WorldCanvas");
-				GameObject.DontDestroyOnLoad(_worldCanvas);
+				if (_worldCanvas != null) {
+					GameObject.DontDestroyOnLoad(_worldCanvas);
+				}
 				if (_worldCanvas == null) { return null; }
 			}
 			return _worldCanvas.GetComponent<RectTransform>();

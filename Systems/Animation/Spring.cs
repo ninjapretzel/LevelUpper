@@ -64,13 +64,22 @@ public class SpringV3 : ISimpleAnim<Vector3> {
 
 }
 
+// [Serializable] public class SpringEuler : ISimpleAnim<Vector3> { }
+
 [Serializable]
 public class SpringQ : ISimpleAnim<Quaternion> {
-
 	public Quaternion value { get; set; }
 	public Quaternion target = Quaternion.identity;
-	public Vector3 angularVelocity;
-
+	/// <summary> Interop angular velocity, in radians per second, with Rigidbody </summary>
+	public Vector3 angularVelocity {
+		get { 
+			return Quaternion.AngleAxis(velAngle, velAxis).eulerAngles * Mathf.Deg2Rad;
+		}
+		set {
+			Quaternion q = Quaternion.Euler(value * Mathf.Rad2Deg);
+			q.ToAngleAxis(out velAngle, out velAxis);
+		}
+	}
 	public Vector3 velAxis;
 	public float velAngle;
 
@@ -86,22 +95,23 @@ public class SpringQ : ISimpleAnim<Quaternion> {
 			velAngle = 0;
 			Debug.Log("vel axis triggered NAN check");
 		}
-		(target * Quaternion.Inverse(value)).ToAngleAxis(out angle, out axis);
-		if (!axis.x.IsNAN()) {
 
+		var aut = target * Quaternion.Inverse(value);
+		aut.ToAngleAxis(out angle, out axis);
+		
+		if (!axis.x.IsNAN()) {
 			if (angle > 180) { angle -= 360; }
 			if (angle < -180) { angle += 360; }
 			velAxis = Vector3.Lerp(velAxis, axis, Time.deltaTime * axisDampening);
 		} else {
 			Debug.Log("new axis triggered NAN check");
-
 		}
 		velAngle += angle * strength * Time.deltaTime;
 		velAngle *= Mathf.Pow(dampening * .0001f, Time.deltaTime);
 		if (velAngle > 180) { velAngle = 180; }
 		if (velAngle < -180) { velAngle = -180; }
 
-		value *= Quaternion.AngleAxis(velAngle * Time.deltaTime, velAxis);
+		value *= Quaternion.AngleAxis(velAngle * Time.deltaTime, velAxis);	
 	}
 
 }

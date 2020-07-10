@@ -332,6 +332,38 @@ namespace LevelUpper.Extensions {
 			return retval;
 		}
 		
+		/// <summary> Performs a serialization of a given object. </summary>
+		/// <typeparam name="T"> Generic type of parameter </typeparam>
+		/// <param name="obj"> Object to serialize. </param>
+		/// <returns> Serialized bytes of the given object. </returns>
+		public static byte[] ToBytes<T>(T obj) {
+			MemoryStream ms = new MemoryStream();
+			BinaryFormatter bf = new BinaryFormatter();
+
+			bf.Serialize(ms, obj);
+			ms.Seek(0, SeekOrigin.Begin);
+			byte[] retval = ms.ToArray();
+
+			ms.Close();
+			return retval;
+		}
+
+		/// <summary> Performs a deserialization of a given object. </summary>
+		/// <typeparam name="T"> Generic type of result </typeparam>
+		/// <param name="bytes"> Bytes to extract from </param>
+		/// <returns> <paramref name="bytes"/> deserialized as a <typeparamref name="T"/>. </returns>
+		public static T FromBytes<T>(byte[] bytes) {
+			MemoryStream ms = new MemoryStream();
+			BinaryFormatter bf = new BinaryFormatter();
+			
+			ms.Write(bytes, 0, bytes.Length);
+			ms.Seek(0, SeekOrigin.Begin);
+			T retVal = (T)bf.Deserialize(ms);
+
+			ms.Close();
+			return retVal;
+		}
+
 		/// <summary> Get the last element in a list</summary>
 		/// <typeparam name="T">Generic Type</typeparam>
 		/// <param name="list">List to grab the last element of</param>

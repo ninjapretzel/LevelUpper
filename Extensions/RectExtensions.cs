@@ -248,6 +248,25 @@ namespace LevelUpper.Extensions {
 		/// <returns> Point at position (<paramref name="x"/>,<paramref name="y"/>) relative to <paramref name="r"/> </returns>
 		/// <remarks> Shorthand for (r.x + r.width * x, r.y + r.height * y) </remarks>
 		public static Vector2 Point(this Rect r, float x, float y) { return new Vector2(r.x + r.width * x, r.y + r.height * y); }
+
+		public static Vector2 Point(this Rect r, TextAnchor anchor) {
+			switch (anchor) {
+				case TextAnchor.MiddleCenter: return r.MiddleCenter();
+				case TextAnchor.MiddleLeft: return r.MiddleLeft();
+				case TextAnchor.MiddleRight: return r.MiddleRight();
+
+				case TextAnchor.UpperCenter: return r.TopCenter();
+				case TextAnchor.UpperLeft: return r.TopLeft();
+				case TextAnchor.UpperRight: return r.TopRight();
+
+				case TextAnchor.LowerCenter: return r.BottomCenter();
+				case TextAnchor.LowerLeft: return r.BottomLeft();
+				case TextAnchor.LowerRight: return r.BottomRight();
+
+				default: return r.MiddleCenter();
+			}
+			
+		}
 	
 		/// <summary> Create a Rect from two Vector2s </summary>
 		/// <param name="pos"> Position of top-left corner </param>

@@ -153,7 +153,7 @@ public class AssetMapUtils {
 	}
 }
 
-[CreateAssetMenu(fileName = "New AssetMap", menuName = "SOs/Create New AssetMap", order = 9000)]
+[CreateAssetMenu(fileName = "New AssetMap", menuName = "SOs/Create New AssetMap", order = 56)]
 public class AssetMap : ScriptableObject, IDictionary<string, Asset> {
 
 	private static readonly string[] EMPTY_STRINGS = { };

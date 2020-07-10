@@ -460,7 +460,7 @@ namespace LevelUpper.Editor {
 			try { val = str.ParseFloat(); } catch { return value; }
 			return val;
 		}
-
+		
 		/// <summary> Make an auto layout text field, displaying an integer <paramref name="value"/>, with given <paramref name="options"/>. </summary>
 		/// <param name="value"> Value to display. </param>
 		/// <param name="options"> Options to change the display </param>
