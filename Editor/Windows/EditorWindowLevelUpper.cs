@@ -24,7 +24,7 @@ namespace LevelUpper.Editor {
 		/// <summary> Shortcut to get the height of this window. </summary>
 		public float height { get { return position.height; } }
 		/// <summary> Shortcut to check if the current window is the active window. </summary>
-		public bool hasFocus { get { return focusedWindow == this as EditorWindow; } }
+		public new bool hasFocus { get { return focusedWindow == this as EditorWindow; } }
 
 		/// <summary> Reference to a GUISkin that has no textures applied to any controls </summary>
 		public static GUISkin blankSkin { get { return Resources.Load<GUISkin>("blank"); } }
